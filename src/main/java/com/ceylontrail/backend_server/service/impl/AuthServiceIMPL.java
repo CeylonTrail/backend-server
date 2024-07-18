@@ -35,13 +35,13 @@ public class AuthServiceIMPL implements AuthService {
 
     @Override
     public String register(RegisterDTO registerDto) {
-        if(userRepository.existsByUsername(registerDto.getUsername())){
+        if(userRepository.existsByUserName(registerDto.getUsername())){
             return "Username is taken!";
         }
         UserEntity user = new UserEntity();
-        user.setUsername(registerDto.getUsername());
+        user.setUserName(registerDto.getUsername());
         user.setPassword(passwordEncoder.encode(registerDto.getPassword()));
-        Optional<RoleEntity> roleOptional = roleRepo.findByName("TRAVELLER");
+        Optional<RoleEntity> roleOptional = roleRepo.findByRoleName("TRAVELLER");
         if (roleOptional.isEmpty()) {
             return "Role not found!";
         }

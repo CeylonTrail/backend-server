@@ -42,19 +42,19 @@ public class AuthController {
     }
     @GetMapping("/traveller/details")
     public ResponseEntity<String> handleTraveller() {
-        int userID = getAuthenticatedUsername();
+        int userID = getAuthenticatedId();
         return ResponseEntity.ok("Welcome to Ceylon Trail Traveller, "+ userID);
     }
 
 
     @GetMapping("/admin/home")
     public String handleWelcomeAdmin(){
-        int userID = getAuthenticatedUsername();
+        int userID = getAuthenticatedId();
         return "Welcome to Ceylon Trail Admin" + userID;
     }
 
 
-    private Integer getAuthenticatedUsername() {
+    private Integer getAuthenticatedId() {
         Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         if (principal instanceof CustomUserDetail) {
             return ((CustomUserDetail) principal).getId();

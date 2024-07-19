@@ -1,23 +1,16 @@
 package com.ceylontrail.backend_server.controller;
 
-import com.ceylontrail.backend_server.dto.AuthResponseDTO;
 import com.ceylontrail.backend_server.dto.LoginDTO;
 import com.ceylontrail.backend_server.dto.RegisterDTO;
 import com.ceylontrail.backend_server.repo.UserRepo;
 import com.ceylontrail.backend_server.security.CustomUserDetail;
 import com.ceylontrail.backend_server.service.AuthService;
+import com.ceylontrail.backend_server.util.StandardResponse;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.context.properties.bind.validation.ValidationErrors;
-import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 @RestController
 @CrossOrigin
@@ -29,37 +22,13 @@ public class AuthController {
     private UserRepo userRepository;
 
     @PostMapping("/register")
-    public ResponseEntity<String> register(@Valid @RequestBody RegisterDTO registerDTO, BindingResult bindingResult) {
-        if (bindingResult.hasErrors()) {
-            List<String> errorMessages = bindingResult.getAllErrors().stream()
-                    .map(DefaultMessageSourceResolvable::getDefaultMessage)
-                    .collect(Collectors.toList());
-            return ResponseEntity.badRequest().body(String.join("\n", errorMessages));
-        } else {
-            AuthResponseDTO responseDTO = authService.register(registerDTO);
-            if (responseDTO.getStatus().equals("ok")){
-                return ResponseEntity.ok().body(responseDTO.toString());
-            } else {
-                return ResponseEntity.badRequest().body(responseDTO.toString());
-            }
-        }
+    public StandardResponse register(@Valid @RequestBody RegisterDTO registerDTO) {
+        return authService.register(registerDTO);
     }
 
     @PostMapping("/login")
-    public ResponseEntity<String> login(@Valid @RequestBody LoginDTO loginDTO, BindingResult bindingResult){
-        if (bindingResult.hasErrors()) {
-            List<String> errorMessages = bindingResult.getAllErrors().stream()
-                    .map(DefaultMessageSourceResolvable::getDefaultMessage)
-                    .collect(Collectors.toList());
-            return ResponseEntity.badRequest().body(String.join("\n", errorMessages));
-        } else {
-            AuthResponseDTO responseDTO = authService.login(loginDTO);
-            if (responseDTO.getStatus().equals("ok")){
-                return ResponseEntity.ok().body(responseDTO.toString());
-            } else {
-                return ResponseEntity.badRequest().body(responseDTO.toString());
-            }
-        }
+    public StandardResponse login(@Valid @RequestBody LoginDTO loginDTO){
+        return authService.login(loginDTO);
     }
 
     @GetMapping("/home")

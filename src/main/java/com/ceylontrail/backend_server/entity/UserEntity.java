@@ -25,8 +25,8 @@ public class UserEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int userId;
 
-    @Column(name = "user_name", unique = true)
-    private String userName;
+    @Column(name = "username", unique = true)
+    private String username;
 
     @Column(name = "email", unique = true)
     private String email;
@@ -34,11 +34,11 @@ public class UserEntity {
     @Column(name = "password")
     private String password;
 
-    @Column(name = "first_name")
-    private String firstName;
+    @Column(name = "firstname")
+    private String firstname;
 
-    @Column(name = "last_name")
-    private String lastName;
+    @Column(name = "lastname")
+    private String lastname;
 
     @CreatedDate
     @Column(name = "created_at", updatable = false)

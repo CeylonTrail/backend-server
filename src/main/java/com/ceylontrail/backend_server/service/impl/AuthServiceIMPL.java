@@ -1,20 +1,22 @@
 package com.ceylontrail.backend_server.service.impl;
-import com.ceylontrail.backend_server.dto.AuthResponseDTO;
 import com.ceylontrail.backend_server.dto.LoginDTO;
 import com.ceylontrail.backend_server.dto.RegisterDTO;
 import com.ceylontrail.backend_server.entity.RoleEntity;
 import com.ceylontrail.backend_server.entity.UserEntity;
+import com.ceylontrail.backend_server.exception.AlreadyExistingException;
+import com.ceylontrail.backend_server.exception.BadCredentialException;
+import com.ceylontrail.backend_server.exception.NotFoundException;
 import com.ceylontrail.backend_server.repo.RoleRepo;
 import com.ceylontrail.backend_server.repo.UserRepo;
 import com.ceylontrail.backend_server.security.CustomUserDetailsService;
 import com.ceylontrail.backend_server.security.webtoken.JwtService;
 import com.ceylontrail.backend_server.service.AuthService;
+import com.ceylontrail.backend_server.util.StandardResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import java.util.Collections;
@@ -38,44 +40,51 @@ public class AuthServiceIMPL implements AuthService {
     private CustomUserDetailsService customUserDetailsService;
 
     @Override
-    public AuthResponseDTO register(RegisterDTO registerDTO) {
+    public StandardResponse register(RegisterDTO registerDTO) {
         if(userRepository.existsByEmail(registerDTO.getEmail())){
-            return new AuthResponseDTO("bad", "Email already exists!");
-        } else if(userRepository.existsByUserName(registerDTO.getUserName())){
-            return new AuthResponseDTO("bad", "UserName is already taken!");
+            throw new AlreadyExistingException("Email is already taken!");
+        } else if(userRepository.existsByUsername(registerDTO.getUsername())){
+            throw new AlreadyExistingException("Username is already taken!");
         } else {
             UserEntity user = new UserEntity();
             user.setEmail(registerDTO.getEmail());
-            user.setUserName(registerDTO.getUserName());
+            user.setUsername(registerDTO.getUsername());
             user.setPassword(passwordEncoder.encode(registerDTO.getPassword()));
-            user.setFirstName(registerDTO.getFirstName());
-            user.setLastName(registerDTO.getLastName());
+            user.setFirstname(registerDTO.getFirstname());
+            user.setLastname(registerDTO.getLastname());
             Optional<RoleEntity> roleOptional = roleRepo.findByRoleName("TRAVELLER");
             if (roleOptional.isEmpty()) {
-                return new AuthResponseDTO("bad", "Role Not Found!");
+                throw new NotFoundException("Role not found!");
             } else {
                 user.setRoles(Collections.singletonList(roleOptional.get()));
                 userRepository.save(user);
-                return new AuthResponseDTO("bad", "User Registered!");
+                Map<String, String> userMap = new HashMap<>();
+                userMap.put("email", user.getEmail());
+                userMap.put("username", user.getUsername());
+                userMap.put("firstname", user.getFirstname());
+                userMap.put("lastname", user.getLastname());
+                return new StandardResponse(200, "Registration success", userMap);
             }
         }
     }
 
     // <<<BUG>>> Email login feature currently not working!!!
     @Override
-    public AuthResponseDTO login(LoginDTO loginDTO) {
-         if (userRepository.existsByUserName(loginDTO.getUserName())){
+    public StandardResponse login(LoginDTO loginDTO) {
+         if (userRepository.existsByUsername(loginDTO.getUsername())){
             try {
                 Authentication authentication = authenticationManager.authenticate(
                         new UsernamePasswordAuthenticationToken(
-                                loginDTO.getUserName(),
+                                loginDTO.getUsername(),
                                 loginDTO.getPassword())
                 );
                 if (authentication.isAuthenticated()) {
-                    return new AuthResponseDTO("ok", jwtService.generateToken(customUserDetailsService.loadUserByUsername(loginDTO.getUserName())));
+                    Map<String, String> tokenMap = new HashMap<>();
+                    tokenMap.put("token", jwtService.generateToken(customUserDetailsService.loadUserByUsername(loginDTO.getUsername())));
+                    return new StandardResponse(200, "Login success", tokenMap);
                 }
             } catch (BadCredentialsException e) {
-                return new AuthResponseDTO("bad", "Password is incorrect!");
+                throw new BadCredentialException("Password is incorrect!");
             }
         } else if(userRepository.existsByEmail(loginDTO.getEmail())){
              try {
@@ -85,12 +94,14 @@ public class AuthServiceIMPL implements AuthService {
                                  loginDTO.getPassword())
                  );
                  if (authentication.isAuthenticated()) {
-                     return new AuthResponseDTO("ok", jwtService.generateToken(customUserDetailsService.loadUserByUsername(loginDTO.getUserName())));
+                     Map<String, String> tokenMap = new HashMap<>();
+                     tokenMap.put("token", jwtService.generateToken(customUserDetailsService.loadUserByUsername(loginDTO.getUsername())));
+                     return new StandardResponse(200, "Login success", tokenMap);
                  }
              } catch (BadCredentialsException e) {
-                 return new AuthResponseDTO("bad", "Password is incorrect!");
+                 throw new BadCredentialException("Password is incorrect!");
              }
-         } else return new AuthResponseDTO("bad", "Both Email and Username is Not Found!");
+         } else throw new NotFoundException("Both email and username not found!");
         return null;
     }
 }

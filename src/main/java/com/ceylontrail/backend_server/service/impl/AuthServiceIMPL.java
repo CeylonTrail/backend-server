@@ -12,6 +12,7 @@ import com.ceylontrail.backend_server.security.CustomUserDetailsService;
 import com.ceylontrail.backend_server.security.webtoken.JwtService;
 import com.ceylontrail.backend_server.service.AuthService;
 import com.ceylontrail.backend_server.util.StandardResponse;
+import com.ceylontrail.backend_server.util.mapper.Mapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -38,6 +39,8 @@ public class AuthServiceIMPL implements AuthService {
     private JwtService jwtService;
     @Autowired
     private CustomUserDetailsService customUserDetailsService;
+    @Autowired
+    private Mapper mapper;
 
     @Override
     public StandardResponse register(RegisterDTO registerDTO) {
@@ -46,12 +49,14 @@ public class AuthServiceIMPL implements AuthService {
         } else if(userRepository.existsByUsername(registerDTO.getUsername())){
             throw new AlreadyExistingException("Username is already taken!");
         } else {
-            UserEntity user = new UserEntity();
-            user.setEmail(registerDTO.getEmail());
-            user.setUsername(registerDTO.getUsername());
-            user.setPassword(passwordEncoder.encode(registerDTO.getPassword()));
-            user.setFirstname(registerDTO.getFirstname());
-            user.setLastname(registerDTO.getLastname());
+            registerDTO.setPassword(passwordEncoder.encode(registerDTO.getPassword()));
+            UserEntity user = mapper.registerDtoToEntity(registerDTO);
+
+//            user.setEmail(registerDTO.getEmail());
+//            user.setUsername(registerDTO.getUsername());
+//            user.setPassword(passwordEncoder.encode(registerDTO.getPassword()));
+//            user.setFirstname(registerDTO.getFirstname());
+//            user.setLastname(registerDTO.getLastname());
             Optional<RoleEntity> roleOptional = roleRepo.findByRoleName("TRAVELLER");
             if (roleOptional.isEmpty()) {
                 throw new NotFoundException("Role not found!");

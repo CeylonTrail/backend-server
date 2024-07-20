@@ -29,9 +29,6 @@ public class EventEntity {
     @Column(name = "day_num",nullable = false)
     private int dayNum;
 
-    @Column(name = "time", columnDefinition = "TIMESTAMP")
-    private LocalDateTime time;
-
     @Column(name = "created_at",columnDefinition = "TIMESTAMP")
     private LocalDateTime createdAt;
 

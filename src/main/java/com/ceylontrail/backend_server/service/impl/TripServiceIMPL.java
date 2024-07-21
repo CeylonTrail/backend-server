@@ -31,33 +31,33 @@ public class TripServiceIMPL implements TripService {
     @Override
     public StandardResponse saveTrip(RequestTripSaveDTO requestTripSaveDTO) {
         int userId = authController.getAuthenticatedUserId();
-        System.out.println("data : " +requestTripSaveDTO);
+        if(!requestTripSaveDTO.getEventSet().isEmpty()) {
+            TripEntity trip = new TripEntity(
+                    requestTripSaveDTO.getDestination(),
+                    requestTripSaveDTO.getDayCount(),
+                    requestTripSaveDTO.getDescription(),
+                    requestTripSaveDTO.getCreatedAt(),
+                    requestTripSaveDTO.getUpdateAt()
+            );
+            trip.setUserId(userId);
+            tripRepo.save(trip);
 
+            if(tripRepo.existsById(trip.getTripId())){
+                List<EventEntity> eventList= mapper.DtoListToEntityList(requestTripSaveDTO.getEventSet());
+                for (EventEntity eventEntity : eventList) {
+                    eventEntity.setTrip(trip);
+                }
 
-        TripEntity trip = new TripEntity(
-                requestTripSaveDTO.getDestination(),
-                requestTripSaveDTO.getDayCount(),
-                requestTripSaveDTO.getDescription(),
-                requestTripSaveDTO.getCreatedAt(),
-                requestTripSaveDTO.getUpdateAt()
-        );
-        trip.setUserId(userId);
-        tripRepo.save(trip);
-
-        if(tripRepo.existsById(trip.getTripId())){
-            List<EventEntity> eventList= mapper.DtoListToEntityList(requestTripSaveDTO.getEventSet());
-            for(int i=0;i< eventList.size();i++){
-                eventList.get(i).setTrip(trip);
+                if(!eventList.isEmpty()){
+                    eventRepo.saveAll(eventList);
+                }
             }
-
-            if(eventList.size()>0){
-                eventRepo.saveAll(eventList);
-            }else{
-                return new StandardResponse(200,"No data",0);
-            }
-
+            return new StandardResponse(200,"Trip saved",requestTripSaveDTO);
+        }else{
+            return new StandardResponse(404,"Event data is empty",requestTripSaveDTO);
         }
-        return new StandardResponse(200,"Trip saved",requestTripSaveDTO);
+
+
 
     }
 }

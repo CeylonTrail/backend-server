@@ -6,7 +6,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
-import java.util.Date;
 import java.util.Set;
 
 @Entity
@@ -20,7 +19,10 @@ public class TripEntity {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private int tripId;
 
-    @Column(name = "destination",length = 100,nullable = false)
+    @Column(name = "user_id",length = 100,nullable = false)
+    private int userId;
+
+    @Column(name = "destination",length = 100)
     private String destination;
 
     @Column(name = "day_count",length = 10,nullable = false)
@@ -38,4 +40,11 @@ public class TripEntity {
     @OneToMany(mappedBy="trip")
     private Set<EventEntity> eventSet;
 
+    public TripEntity(String destination, int dayCount, String description, LocalDate createdAt, LocalDate updateAt) {
+        this.destination = destination;
+        this.dayCount = dayCount;
+        this.description = description;
+        this.createdAt = createdAt;
+        this.updateAt = updateAt;
+    }
 }

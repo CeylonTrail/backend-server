@@ -1,6 +1,6 @@
 package com.ceylontrail.backend_server.dto.comment;
 
-import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -10,10 +10,10 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class RemoveCommentDTO {
 
-    @NotBlank(message = "Comment Id is required!")
+    @NotNull(message = "Comment Id is required!")
     private Long commentId;
 
-    @NotBlank(message = "Post Id is required!")
+    @NotNull(message = "Post Id is required!")
     private Long postId;
 
 }

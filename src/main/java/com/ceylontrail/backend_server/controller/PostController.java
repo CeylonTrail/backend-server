@@ -33,12 +33,12 @@ public class PostController {
         return postService.deletePost(postDTO);
     }
 
-    @PutMapping(path = "/like/add")
+    @PostMapping(path = "/like")
     public StandardResponse addLikePost(@Valid @RequestBody LikePostDTO postDTO) {
         return postService.addLikePost(postDTO);
     }
 
-    @PutMapping(path = "/like/remove")
+    @DeleteMapping(path = "/like")
     public StandardResponse removeLikePost(@Valid @RequestBody LikePostDTO postDTO) {
         return postService.removeLikePost(postDTO);
     }

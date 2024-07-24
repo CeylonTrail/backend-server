@@ -1,6 +1,6 @@
 package com.ceylontrail.backend_server.dto.post;
 
-import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
 @Data
 public class DeletePostDTO {
 
-    @NotBlank(message = "Post Id is required!")
+    @NotNull(message = "Post Id is required!")
     private Long postId;
 
 }

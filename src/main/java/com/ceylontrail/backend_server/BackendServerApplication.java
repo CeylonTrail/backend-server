@@ -14,6 +14,7 @@ public class BackendServerApplication {
 		System.setProperty("DB_URL", dotenv.get("DB_URL"));
 		System.setProperty("DB_USERNAME", dotenv.get("DB_USERNAME"));
 		System.setProperty("DB_PASSWORD", dotenv.get("DB_PASSWORD"));
+		System.setProperty("API_PLACES", dotenv.get("API_PLACES"));
 
 		SpringApplication.run(BackendServerApplication.class, args);
 	}

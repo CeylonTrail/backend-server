@@ -6,7 +6,6 @@ import com.ceylontrail.backend_server.repo.UserRepo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
@@ -21,7 +20,7 @@ public class CustomUserDetailsService implements UserDetailsService {
     @Autowired
     private UserRepo userEntityRepo;
     @Override
-    public UserDetails loadUserByUsername(String userName) throws UsernameNotFoundException {
+    public CustomUserDetail loadUserByUsername(String userName) throws UsernameNotFoundException {
         UserEntity userEntity = userEntityRepo.findByUsername(userName).orElseThrow(() -> new UsernameNotFoundException("Username not found"));
         return new CustomUserDetail(userEntity.getUsername(), userEntity.getPassword(),mapRolesToAuthorities(userEntity.getRoles()),userEntity.getUserId());
     }

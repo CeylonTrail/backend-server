@@ -18,8 +18,8 @@ public class PostController {
     @Autowired
     private PostService postService;
 
-    @PostMapping
-    public StandardResponse createPost(@Valid @RequestBody CreatePostDTO postDTO) {
+    @PostMapping(consumes = "multipart/form-data")
+    public StandardResponse createPost(@ModelAttribute CreatePostDTO postDTO) {
         return postService.createPost(postDTO);
     }
 

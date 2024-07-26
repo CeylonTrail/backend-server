@@ -12,8 +12,6 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @Data
 public class EventDTO {
-
-    private int trip;
     private String description;
     private int dayNum;
     private LocalDateTime createdAt;

@@ -1,9 +1,8 @@
 package com.ceylontrail.backend_server.repo;
+
 import com.ceylontrail.backend_server.entity.RoleEntity;
+import com.ceylontrail.backend_server.entity.TripEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
-import java.util.Optional;
 
-public interface RoleRepo extends JpaRepository<RoleEntity,Integer> {
-    Optional<RoleEntity> findByRoleName(String RoleName);
+public interface TripRepo extends JpaRepository<TripEntity,Integer> {
 }
-

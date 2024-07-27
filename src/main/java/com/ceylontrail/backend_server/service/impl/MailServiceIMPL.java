@@ -63,4 +63,40 @@ public class MailServiceIMPL implements MailService {
 
         this.sendMail(user.getEmail(), subject, body);
     }
+
+    @Override
+    public void travellerActivationMail(UserEntity user) {
+        String subject = "CeylonTrail - Account Activation";
+        String body = String.format("""
+                        Dear %s,
+
+                        Welcome to CeylonTrail! Please activate your account using the following link:
+
+                        [Activation Link]
+
+                        Best regards,
+                        CeylonTrail Team
+                        """,
+                user.getFirstname());
+
+        //this.sendMail(user.getEmail(), subject, body);
+    }
+
+    @Override
+    public void serviceProviderActivationMail(UserEntity user, String serviceName) {
+        String subject = "CeylonTrail - Service Provider Account Activation";
+        String body = String.format("""
+                        Dear %s,
+
+                        Welcome to CeylonTrail! Please activate your service provider account for %s using the following link:
+
+                        [Activation Link]
+
+                        Best regards,
+                        CeylonTrail Team
+                        """,
+                user.getFirstname(), serviceName);
+
+        //this.sendMail(user.getEmail(), subject, body);
+    }
 }

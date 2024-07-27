@@ -10,7 +10,9 @@ public interface UserRepo extends JpaRepository<UserEntity, Integer> {
     UserEntity findByUserId(int userId);
     UserEntity findByEmail(String email);
     UserEntity findByForgetPasswordOtp(String forgetPasswordOtp);
+    UserEntity findByActivationToken(String activationToken);
     boolean existsByUsername(String userName);
     boolean existsByEmail(String email);
     boolean existsByForgetPasswordOtp(String forgetPasswordOtp);
+    boolean existsByActivationToken(String activationToken);
 }

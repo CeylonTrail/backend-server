@@ -1,10 +1,6 @@
 package com.ceylontrail.backend_server.controller;
 
-import com.ceylontrail.backend_server.dto.LoginDTO;
-import com.ceylontrail.backend_server.dto.RegisterDTO;
-import com.ceylontrail.backend_server.dto.auth.EmailDTO;
-import com.ceylontrail.backend_server.dto.auth.OtpDTO;
-import com.ceylontrail.backend_server.dto.auth.ResetPasswordDTO;
+import com.ceylontrail.backend_server.dto.auth.*;
 import com.ceylontrail.backend_server.security.CustomUserDetail;
 import com.ceylontrail.backend_server.service.AuthService;
 import com.ceylontrail.backend_server.util.StandardResponse;
@@ -21,9 +17,14 @@ public class AuthController {
     @Autowired
     private AuthService authService;
 
-    @PostMapping("/register")
-    public StandardResponse register(@Valid @RequestBody RegisterDTO registerDTO) {
-        return authService.register(registerDTO);
+    @PostMapping("/register-traveller")
+    public StandardResponse registerTraveller(@Valid @RequestBody TravellerRegisterDTO registerDTO) {
+        return authService.registerTraveller(registerDTO);
+    }
+
+    @PostMapping("/register-service-provider")
+    public StandardResponse registerServiceProvider(@Valid @RequestBody ServiceProviderRegisterDTO registerDTO) {
+        return authService.registerServiceProvider(registerDTO);
     }
 
     @PostMapping("/login")

@@ -1,4 +1,4 @@
-package com.ceylontrail.backend_server.dto;
+package com.ceylontrail.backend_server.dto.auth;
 
 import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
@@ -10,9 +10,10 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class LoginDTO {
 
+    @NotBlank(message = "Password is required!")
     private String email;
-    private String username;
 
     @NotBlank(message = "Password is required!")
     private String password;
+
 }

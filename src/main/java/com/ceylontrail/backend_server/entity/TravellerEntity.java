@@ -6,6 +6,9 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Entity
 @Table(name = "traveller")
 @NoArgsConstructor
@@ -13,24 +16,19 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 @Data
 @EntityListeners(AuditingEntityListener.class)
 public class TravellerEntity {
+
     @Id
     @Column(name = "traveller_id")
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int travellerId;
 
     @OneToOne
-    @JoinColumn(name = "user_id", referencedColumnName = "user_id", unique = true)
+    @JoinColumn(name = "user_id", unique = true, nullable = false)
     private UserEntity user;
 
-    @Column(name = "firstname")
-    private String firstname;
+    @ElementCollection
+    @CollectionTable(name = "traveller_interests", joinColumns = @JoinColumn(name = "traveller_id"))
+    @Column(name = "interests")
+    private List<String> interests = new ArrayList<>();
 
-    @Column(name = "lastname")
-    private String lastname;
-
-    public TravellerEntity(UserEntity user, String firstname, String lastname) {
-        this.user = user;
-        this.firstname = firstname;
-        this.lastname = lastname;
-    }
 }

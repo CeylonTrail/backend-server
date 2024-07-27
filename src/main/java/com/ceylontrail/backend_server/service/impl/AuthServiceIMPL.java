@@ -1,17 +1,15 @@
 package com.ceylontrail.backend_server.service.impl;
 
-import com.ceylontrail.backend_server.dto.LoginDTO;
-import com.ceylontrail.backend_server.dto.RegisterDTO;
-import com.ceylontrail.backend_server.dto.auth.EmailDTO;
-import com.ceylontrail.backend_server.dto.auth.OtpDTO;
-import com.ceylontrail.backend_server.dto.auth.ResetPasswordDTO;
+import com.ceylontrail.backend_server.dto.auth.*;
 import com.ceylontrail.backend_server.entity.RoleEntity;
+import com.ceylontrail.backend_server.entity.ServiceProviderEntity;
 import com.ceylontrail.backend_server.entity.TravellerEntity;
 import com.ceylontrail.backend_server.entity.UserEntity;
 import com.ceylontrail.backend_server.exception.AlreadyExistingException;
 import com.ceylontrail.backend_server.exception.BadCredentialException;
 import com.ceylontrail.backend_server.exception.NotFoundException;
 import com.ceylontrail.backend_server.repo.RoleRepo;
+import com.ceylontrail.backend_server.repo.ServiceProviderRepo;
 import com.ceylontrail.backend_server.repo.TravellerRepo;
 import com.ceylontrail.backend_server.repo.UserRepo;
 import com.ceylontrail.backend_server.security.CustomUserDetailsService;
@@ -27,13 +25,11 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.security.SecureRandom;
 import java.time.LocalDateTime;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 @Service
 public class AuthServiceIMPL implements AuthService {
@@ -65,117 +61,47 @@ public class AuthServiceIMPL implements AuthService {
     @Autowired
     private TravellerRepo travellerRepo;
 
+    @Autowired
+    private ServiceProviderRepo serviceProviderRepo;
+
     @Override
-    public StandardResponse register(RegisterDTO registerDTO) {
-        if(userRepo.existsByEmail(registerDTO.getEmail())){
-            throw new AlreadyExistingException("Email is already taken!");
-        } else if(userRepo.existsByUsername(registerDTO.getUsername())){
-            throw new AlreadyExistingException("Username is already taken!");
-        } else {
-            registerDTO.setPassword(passwordEncoder.encode(registerDTO.getPassword()));
-            UserEntity user = mapper.registerDtoToEntity(registerDTO);
-            Optional<RoleEntity> roleOptional = roleRepo.findByRoleName("TRAVELLER");
-            if (roleOptional.isEmpty()) {
-                throw new NotFoundException("Role not found!");
-            } else {
-                user.setRoles(Collections.singletonList(roleOptional.get()));
-                userRepo.save(user);
-                TravellerEntity traveller = new TravellerEntity(
-                        userRepo.getReferenceById(user.getUserId()),
-                        user.getFirstname(),
-                        user.getLastname()
-                );
-                travellerRepo.save(traveller);
-                Map<String, String> userMap = new HashMap<>();
-                userMap.put("email", user.getEmail());
-                userMap.put("username", user.getUsername());
-                userMap.put("firstname", user.getFirstname());
-                userMap.put("lastname", user.getLastname());
-                return new StandardResponse(200, "Registration success", userMap);
+    public void initialRegisterCheck(String email, String username) {
+        if(userRepo.existsByEmail(email))
+            throw new AlreadyExistingException("Email is already taken");
+        if(userRepo.existsByUsername(username))
+            throw new AlreadyExistingException("Username is already taken");
+    }
 
+    @Override
+    public String activationTokenGenerator() {
+        String activationToken;
+        while (true){
+            activationToken = UUID.randomUUID().toString().replace("-", "");
+            if (!userRepo.existsByActivationToken(activationToken)) {
+                return activationToken;
             }
-
-
         }
     }
 
-    // <<<BUG>>> Email login feature currently not working!!!
     @Override
-    public StandardResponse login(LoginDTO loginDTO) {
-         if (userRepo.existsByUsername(loginDTO.getUsername())){
-            try {
-                Authentication authentication = authenticationManager.authenticate(
-                        new UsernamePasswordAuthenticationToken(
-                                loginDTO.getUsername(),
-                                loginDTO.getPassword())
-                );
-                if (authentication.isAuthenticated()) {
-                    Map<String, String> tokenMap = new HashMap<>();
-                    tokenMap.put("token", jwtService.generateToken(customUserDetailsService.loadUserByUsername(loginDTO.getUsername())));
-                    return new StandardResponse(200, "Login success", tokenMap);
-                }
-            } catch (BadCredentialsException e) {
-                throw new BadCredentialException("Password is incorrect!");
-            }
-        } else if(userRepo.existsByEmail(loginDTO.getEmail())){
-             try {
-                 Authentication authentication = authenticationManager.authenticate(
-                         new UsernamePasswordAuthenticationToken(
-                                 loginDTO.getEmail(),
-                                 loginDTO.getPassword())
-                 );
-                 if (authentication.isAuthenticated()) {
-                     Map<String, String> tokenMap = new HashMap<>();
-                     tokenMap.put("token", jwtService.generateToken(customUserDetailsService.loadUserByUsername(loginDTO.getUsername())));
-                     return new StandardResponse(200, "Login success", tokenMap);
-                 }
-             } catch (BadCredentialsException e) {
-                 throw new BadCredentialException("Password is incorrect!");
-             }
-         } else throw new NotFoundException("Both email and username not found!");
-        return null;
+    public UserEntity createUser(String email, String username, String password, String firstname, String lastname, String role) {
+        this.initialRegisterCheck(email, username);
+        UserEntity user = new UserEntity();
+        user.setUsername(username);
+        user.setEmail(email);
+        user.setPassword(passwordEncoder.encode(password));
+        user.setFirstname(firstname);
+        user.setLastname(lastname);
+        user.setActivationToken(this.activationTokenGenerator());
+        Optional<RoleEntity> roleOptional = roleRepo.findByRoleName(role);
+        if (roleOptional.isEmpty())
+            throw new NotFoundException("Role not found");
+        else
+            user.setRoles(Collections.singletonList(roleOptional.get()));
+        return userRepo.save(user);
     }
 
     @Override
-    public StandardResponse forgetPassword(EmailDTO emailDTO) {
-        if (!userRepo.existsByEmail(emailDTO.getEmail()))
-            throw new NotFoundException("Email not found!");
-        UserEntity user = userRepo.findByEmail(emailDTO.getEmail());
-        user.setForgetPasswordOtp(this.otpGenerator());
-        user.setForgetPasswordOtpExpiredAt(LocalDateTime.now().plusMinutes(10));
-        userRepo.save(user);
-        mailService.forgetPasswordOtpMail(user);
-        return new StandardResponse(200, "Otp sent successfully", null);
-    }
-
-    @Override
-    public StandardResponse validateOtp(OtpDTO otpDTO) {
-        if (userRepo.existsByForgetPasswordOtp(otpDTO.getOtp()))
-            throw new RuntimeException("Otp not found!");
-        UserEntity user = userRepo.findByForgetPasswordOtp(otpDTO.getOtp());
-        if (user.getForgetPasswordOtpExpiredAt().isBefore(LocalDateTime.now()))
-            throw new RuntimeException("OTP has expired");
-        Map<String, String> userMap = new HashMap<>();
-        userMap.put("email", user.getEmail());
-        userMap.put("otp", otpDTO.getOtp());
-        return new StandardResponse(200, "Otp validated successfully", userMap);
-    }
-
-    @Override
-    public StandardResponse resetPassword(ResetPasswordDTO resetDTO) {
-        if (!userRepo.existsByEmail(resetDTO.getEmail()))
-            throw new NotFoundException("Email not found!");
-        if (userRepo.existsByForgetPasswordOtp(resetDTO.getOtp()))
-            throw new RuntimeException("Otp not found!");
-        UserEntity user = userRepo.findByEmail(resetDTO.getEmail());
-        user.setForgetPasswordOtp(null);
-        user.setForgetPasswordOtpExpiredAt(null);
-        user.setPassword(passwordEncoder.encode(resetDTO.getPassword()));
-        userRepo.save(user);
-        mailService.passwordResetSuccessMail(user);
-        return new StandardResponse(200, "Password reset successfully", null);
-    }
-
     public String otpGenerator() {
         SecureRandom random = new SecureRandom();
         String CHARACTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
@@ -189,6 +115,96 @@ public class AuthServiceIMPL implements AuthService {
                 return otp.toString();
             }
         }
+    }
+
+    @Override
+    @Transactional
+    public StandardResponse registerTraveller(TravellerRegisterDTO registerDTO) {
+        TravellerEntity traveller = new TravellerEntity();
+        traveller.setUser(createUser(registerDTO.getEmail(), registerDTO.getUsername(), registerDTO.getPassword(), registerDTO.getFirstname(), registerDTO.getLastname(), "TRAVELLER"));
+        travellerRepo.save(traveller);
+        mailService.travellerActivationMail(traveller.getUser());
+        return new StandardResponse(200, "Registration success", null);
+    }
+
+    @Override
+    @Transactional
+    public StandardResponse registerServiceProvider(ServiceProviderRegisterDTO registerDTO) {
+        ServiceProviderEntity serviceProvider = new ServiceProviderEntity();
+        serviceProvider.setUser(createUser(registerDTO.getEmail(), registerDTO.getUsername(), registerDTO.getPassword(), registerDTO.getFirstname(), registerDTO.getLastname(), "SERVICE_PROVIDER"));
+        serviceProvider.setServiceName(registerDTO.getServiceName());
+        if (registerDTO.getServiceType() == ServiceProviderEntity.ServiceType.A)
+            serviceProvider.setServiceType(ServiceProviderEntity.ServiceType.A);
+        else if (registerDTO.getServiceType() == ServiceProviderEntity.ServiceType.B)
+            serviceProvider.setServiceType(ServiceProviderEntity.ServiceType.B);
+        else
+            serviceProvider.setServiceType(ServiceProviderEntity.ServiceType.C);
+        serviceProvider.setLatitude(registerDTO.getLatitude());
+        serviceProvider.setLongitude(registerDTO.getLongitude());
+        serviceProviderRepo.save(serviceProvider);
+        mailService.serviceProviderActivationMail(serviceProvider.getUser(), serviceProvider.getServiceName());
+        return new StandardResponse(200, "Registration success", null);
+        }
+
+    @Override
+    public StandardResponse login(LoginDTO loginDTO) {
+         if(userRepo.existsByEmail(loginDTO.getEmail())){
+             try {
+                 Authentication authentication = authenticationManager.authenticate(
+                         new UsernamePasswordAuthenticationToken(
+                                 loginDTO.getEmail(),
+                                 loginDTO.getPassword())
+                 );
+                 if (authentication.isAuthenticated()) {
+                     Map<String, String> tokenMap = new HashMap<>();
+                     tokenMap.put("token", jwtService.generateToken(customUserDetailsService.loadUserByUsername(loginDTO.getEmail())));
+                     return new StandardResponse(200, "Login success", tokenMap);
+                 }
+             } catch (BadCredentialsException e) {
+                 throw new BadCredentialException("Password is incorrect");
+             }
+         } else throw new NotFoundException("Email not found");
+        return null;
+    }
+
+    @Override
+    public StandardResponse forgetPassword(EmailDTO emailDTO) {
+        if (!userRepo.existsByEmail(emailDTO.getEmail()))
+            throw new NotFoundException("Email not found");
+        UserEntity user = userRepo.findByEmail(emailDTO.getEmail());
+        user.setForgetPasswordOtp(this.otpGenerator());
+        user.setForgetPasswordOtpExpiredAt(LocalDateTime.now().plusMinutes(10));
+        userRepo.save(user);
+        mailService.forgetPasswordOtpMail(user);
+        return new StandardResponse(200, "Otp sent successfully", null);
+    }
+
+    @Override
+    public StandardResponse validateOtp(OtpDTO otpDTO) {
+        if (userRepo.existsByForgetPasswordOtp(otpDTO.getOtp()))
+            throw new RuntimeException("Otp not found");
+        UserEntity user = userRepo.findByForgetPasswordOtp(otpDTO.getOtp());
+        if (user.getForgetPasswordOtpExpiredAt().isBefore(LocalDateTime.now()))
+            throw new RuntimeException("OTP has expired");
+        Map<String, String> userMap = new HashMap<>();
+        userMap.put("email", user.getEmail());
+        userMap.put("otp", otpDTO.getOtp());
+        return new StandardResponse(200, "Otp validated successfully", userMap);
+    }
+
+    @Override
+    public StandardResponse resetPassword(ResetPasswordDTO resetDTO) {
+        if (!userRepo.existsByEmail(resetDTO.getEmail()))
+            throw new NotFoundException("Email not found");
+        if (userRepo.existsByForgetPasswordOtp(resetDTO.getOtp()))
+            throw new RuntimeException("Otp not found");
+        UserEntity user = userRepo.findByEmail(resetDTO.getEmail());
+        user.setForgetPasswordOtp(null);
+        user.setForgetPasswordOtpExpiredAt(null);
+        user.setPassword(passwordEncoder.encode(resetDTO.getPassword()));
+        userRepo.save(user);
+        mailService.passwordResetSuccessMail(user);
+        return new StandardResponse(200, "Password reset successfully", null);
     }
 
 }

@@ -14,13 +14,13 @@ public class CustomUserDetail extends User {
     private final int id;
 
 
-    public CustomUserDetail(String username, String password, Collection<? extends GrantedAuthority> authorities, int id) {
-        super(username, password, authorities);
+    public CustomUserDetail(String email, String password, Collection<? extends GrantedAuthority> authorities, int id) {
+        super(email, password, authorities);
         this.id = id;
     }
 
-    public CustomUserDetail(String username, String password, boolean enabled, boolean accountNonExpired, boolean credentialsNonExpired, boolean accountNonLocked, Collection<? extends GrantedAuthority> authorities, int id) {
-        super(username, password, enabled, accountNonExpired, credentialsNonExpired, accountNonLocked, authorities);
+    public CustomUserDetail(String email, String password, boolean enabled, boolean accountNonExpired, boolean credentialsNonExpired, boolean accountNonLocked, Collection<? extends GrantedAuthority> authorities, int id) {
+        super(email, password, enabled, accountNonExpired, credentialsNonExpired, accountNonLocked, authorities);
         this.id = id;
     }
 }

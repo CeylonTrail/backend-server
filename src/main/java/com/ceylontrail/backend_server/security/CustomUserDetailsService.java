@@ -10,19 +10,22 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
-import javax.management.relation.Role;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
 public class CustomUserDetailsService implements UserDetailsService {
+
     @Autowired
-    private UserRepo userEntityRepo;
+    private UserRepo userRepo;
+
     @Override
-    public CustomUserDetail loadUserByUsername(String userName) throws UsernameNotFoundException {
-        UserEntity userEntity = userEntityRepo.findByUsername(userName).orElseThrow(() -> new UsernameNotFoundException("Username not found"));
-        return new CustomUserDetail(userEntity.getUsername(), userEntity.getPassword(),mapRolesToAuthorities(userEntity.getRoles()),userEntity.getUserId());
+    public CustomUserDetail loadUserByUsername(String email) {
+        if (!userRepo.existsByEmail(email))
+            throw new UsernameNotFoundException("Email not found");
+        UserEntity userEntity = userRepo.findByEmail(email);
+        return new CustomUserDetail(userEntity.getEmail(), userEntity.getPassword(),mapRolesToAuthorities(userEntity.getRoles()),userEntity.getUserId());
     }
 
     private Collection<GrantedAuthority> mapRolesToAuthorities(List<RoleEntity> roles) {

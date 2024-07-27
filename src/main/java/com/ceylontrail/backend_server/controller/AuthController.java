@@ -2,7 +2,6 @@ package com.ceylontrail.backend_server.controller;
 
 import com.ceylontrail.backend_server.dto.LoginDTO;
 import com.ceylontrail.backend_server.dto.RegisterDTO;
-import com.ceylontrail.backend_server.repo.UserRepo;
 import com.ceylontrail.backend_server.security.CustomUserDetail;
 import com.ceylontrail.backend_server.service.AuthService;
 import com.ceylontrail.backend_server.util.StandardResponse;
@@ -18,8 +17,6 @@ import org.springframework.web.bind.annotation.*;
 public class AuthController {
     @Autowired
     private AuthService authService;
-    @Autowired
-    private UserRepo userRepository;
 
     @PostMapping("/register")
     public StandardResponse register(@Valid @RequestBody RegisterDTO registerDTO) {
@@ -52,7 +49,6 @@ public class AuthController {
         int userID = getAuthenticatedUserId();
         return "Welcome to Ceylon Trail Admin" + userID;
     }
-
 
     public Integer getAuthenticatedUserId() {
         Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();

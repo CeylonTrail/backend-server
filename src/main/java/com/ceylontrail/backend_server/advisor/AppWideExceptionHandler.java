@@ -1,14 +1,13 @@
 package com.ceylontrail.backend_server.advisor;
 
-import com.ceylontrail.backend_server.exception.AlreadyExistingException;
-import com.ceylontrail.backend_server.exception.BadCredentialException;
-import com.ceylontrail.backend_server.exception.NotFoundException;
+import com.ceylontrail.backend_server.exception.*;
 import com.ceylontrail.backend_server.util.StandardResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 import java.util.*;
 
@@ -37,7 +36,26 @@ public class AppWideExceptionHandler {
             String errorMessage = error.getDefaultMessage();
             errors.computeIfAbsent(field, k -> new ArrayList<>()).add(errorMessage);
         });
-        return new ResponseEntity<>(new StandardResponse(400, "Validation Errors", errors), HttpStatus.BAD_REQUEST);
+        return new ResponseEntity<>(new StandardResponse(400, "Validation Error", errors), HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<StandardResponse> handleTypeMismatchExceptions(MethodArgumentTypeMismatchException ex) {
+        Map<String, String> errors = new HashMap<>();
+        String fieldName = ex.getName();
+        String errorMessage = "Invalid value for " + fieldName + ": " + ex.getValue();
+        errors.put(fieldName, errorMessage);
+        return new ResponseEntity<>(new StandardResponse(400, "Type Mismatch Error", errors), HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(UnauthorizedException.class)
+    public ResponseEntity<StandardResponse> handleUnauthorizedException(UnauthorizedException e) {
+        return new ResponseEntity<>(new StandardResponse(401,"Error",e.getMessage()), HttpStatus.UNAUTHORIZED);
+    }
+
+    @ExceptionHandler(ConflictException.class)
+    public ResponseEntity<StandardResponse> handleConflictException(ConflictException e) {
+        return new ResponseEntity<>(new StandardResponse(409,"Error",e.getMessage()), HttpStatus.CONFLICT);
     }
 
 }

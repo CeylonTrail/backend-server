@@ -34,6 +34,12 @@ public class UserEntity {
     @Column(name = "password")
     private String password;
 
+    @Column(name = "forget_password_otp", length = 6, unique = true)
+    private String forgetPasswordOtp;
+
+    @Column(name = "forget_password_otp_expired_at")
+    private LocalDateTime forgetPasswordOtpExpiredAt;
+
     @Column(name = "firstname")
     private String firstname;
 

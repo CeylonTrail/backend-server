@@ -13,7 +13,7 @@ import java.util.Set;
 @NoArgsConstructor
 @AllArgsConstructor
 @Data
-public class TripEntity {
+public class  TripEntity {
     @Id
     @Column(name = "trip_id",length = 45)
     @GeneratedValue(strategy = GenerationType.AUTO)

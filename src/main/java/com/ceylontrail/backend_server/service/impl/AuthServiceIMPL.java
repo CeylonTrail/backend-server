@@ -6,11 +6,13 @@ import com.ceylontrail.backend_server.dto.auth.EmailDTO;
 import com.ceylontrail.backend_server.dto.auth.OtpDTO;
 import com.ceylontrail.backend_server.dto.auth.ResetPasswordDTO;
 import com.ceylontrail.backend_server.entity.RoleEntity;
+import com.ceylontrail.backend_server.entity.TravellerEntity;
 import com.ceylontrail.backend_server.entity.UserEntity;
 import com.ceylontrail.backend_server.exception.AlreadyExistingException;
 import com.ceylontrail.backend_server.exception.BadCredentialException;
 import com.ceylontrail.backend_server.exception.NotFoundException;
 import com.ceylontrail.backend_server.repo.RoleRepo;
+import com.ceylontrail.backend_server.repo.TravellerRepo;
 import com.ceylontrail.backend_server.repo.UserRepo;
 import com.ceylontrail.backend_server.security.CustomUserDetailsService;
 import com.ceylontrail.backend_server.security.webtoken.JwtService;
@@ -59,6 +61,9 @@ public class AuthServiceIMPL implements AuthService {
 
     @Autowired
     private MailService mailService;
+  
+    @Autowired
+    private TravellerRepo travellerRepo;
 
     @Override
     public StandardResponse register(RegisterDTO registerDTO) {
@@ -75,13 +80,22 @@ public class AuthServiceIMPL implements AuthService {
             } else {
                 user.setRoles(Collections.singletonList(roleOptional.get()));
                 userRepo.save(user);
+                TravellerEntity traveller = new TravellerEntity(
+                        userRepo.getReferenceById(user.getUserId()),
+                        user.getFirstname(),
+                        user.getLastname()
+                );
+                travellerRepo.save(traveller);
                 Map<String, String> userMap = new HashMap<>();
                 userMap.put("email", user.getEmail());
                 userMap.put("username", user.getUsername());
                 userMap.put("firstname", user.getFirstname());
                 userMap.put("lastname", user.getLastname());
                 return new StandardResponse(200, "Registration success", userMap);
+
             }
+
+
         }
     }
 

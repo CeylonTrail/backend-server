@@ -2,11 +2,13 @@ package com.ceylontrail.backend_server.service.impl;
 import com.ceylontrail.backend_server.dto.LoginDTO;
 import com.ceylontrail.backend_server.dto.RegisterDTO;
 import com.ceylontrail.backend_server.entity.RoleEntity;
+import com.ceylontrail.backend_server.entity.TravellerEntity;
 import com.ceylontrail.backend_server.entity.UserEntity;
 import com.ceylontrail.backend_server.exception.AlreadyExistingException;
 import com.ceylontrail.backend_server.exception.BadCredentialException;
 import com.ceylontrail.backend_server.exception.NotFoundException;
 import com.ceylontrail.backend_server.repo.RoleRepo;
+import com.ceylontrail.backend_server.repo.TravellerRepo;
 import com.ceylontrail.backend_server.repo.UserRepo;
 import com.ceylontrail.backend_server.security.CustomUserDetailsService;
 import com.ceylontrail.backend_server.security.webtoken.JwtService;
@@ -42,6 +44,9 @@ public class AuthServiceIMPL implements AuthService {
     @Autowired
     private Mapper mapper;
 
+    @Autowired
+    private TravellerRepo travellerRepo;
+
     @Override
     public StandardResponse register(RegisterDTO registerDTO) {
         if(userRepository.existsByEmail(registerDTO.getEmail())){
@@ -63,13 +68,24 @@ public class AuthServiceIMPL implements AuthService {
             } else {
                 user.setRoles(Collections.singletonList(roleOptional.get()));
                 userRepository.save(user);
+
+                TravellerEntity traveller = new TravellerEntity(
+                        userRepository.getReferenceById(user.getUserId()),
+                        user.getFirstname(),
+                        user.getLastname()
+                );
+                travellerRepo.save(traveller);
+
                 Map<String, String> userMap = new HashMap<>();
                 userMap.put("email", user.getEmail());
                 userMap.put("username", user.getUsername());
                 userMap.put("firstname", user.getFirstname());
                 userMap.put("lastname", user.getLastname());
                 return new StandardResponse(200, "Registration success", userMap);
+
             }
+
+
         }
     }
 

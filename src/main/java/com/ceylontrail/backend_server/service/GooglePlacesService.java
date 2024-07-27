@@ -1,5 +1,10 @@
 package com.ceylontrail.backend_server.service;
 
+import com.ceylontrail.backend_server.util.StandardResponse;
+
 public interface GooglePlacesService {
-    String getPlaces(String location);
+
+    String getCoordinates(String location);
+
+    StandardResponse getPlaces(String location, int radius, int count);
 }

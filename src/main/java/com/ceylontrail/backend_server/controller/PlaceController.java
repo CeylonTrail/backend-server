@@ -1,5 +1,6 @@
 package com.ceylontrail.backend_server.controller;
 import com.ceylontrail.backend_server.service.GooglePlacesService;
+import com.ceylontrail.backend_server.util.StandardResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -10,9 +11,18 @@ public class PlaceController {
     @Autowired
     private GooglePlacesService googlePlacesService;
 
-    @GetMapping("/places")
-    public String getPlaces(@RequestParam String location) {
-        return googlePlacesService.getPlaces(location);
+    @GetMapping(
+            path = {"/places"},
+            params = {"location","radius","count"}
+    )
+    public StandardResponse getPlaces(
+            @RequestParam(value = "location") String location,
+            @RequestParam(value = "radius") int radius,
+            @RequestParam(value = "count") int count
+
+    ) {
+       return googlePlacesService.getPlaces(location,radius,count);
+
     }
 
 }

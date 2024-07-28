@@ -19,6 +19,7 @@ public class BackendServerApplication {
 		System.setProperty("MAIL_USERNAME", dotenv.get("MAIL_USERNAME"));
 		System.setProperty("MAIL_PASSWORD", dotenv.get("MAIL_PASSWORD"));
 		System.setProperty("API_PLACES", dotenv.get("API_PLACES"));
+		System.setProperty("API_OPENAI", dotenv.get("API_OPENAI"));
 
 		SpringApplication.run(BackendServerApplication.class, args);
 	}

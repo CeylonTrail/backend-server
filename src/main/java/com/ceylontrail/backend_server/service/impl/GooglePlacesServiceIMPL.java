@@ -3,13 +3,12 @@ import com.ceylontrail.backend_server.entity.PlaceEntity;
 import com.ceylontrail.backend_server.service.GooglePlacesService;
 import com.ceylontrail.backend_server.util.StandardResponse;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.client.RestTemplate;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Service
 public class GooglePlacesServiceIMPL implements GooglePlacesService {
@@ -20,6 +19,11 @@ public class GooglePlacesServiceIMPL implements GooglePlacesService {
     @Value("${google.places.api.url}")
     private String apiUrl;
 
+    @Value("${open.api.key}")
+    private String openAiApiKey;
+
+    @Value("${open.api.url}")
+    private String openAiApiUrl;
     @Autowired
     private RestTemplate restTemplate;
 
@@ -59,6 +63,10 @@ public class GooglePlacesServiceIMPL implements GooglePlacesService {
             if (response != null && response.containsKey("results")) {
                 List<Map<String, Object>> places = (List<Map<String, Object>>) response.get("results");
                 for (Map<String, Object> placeData : places) {
+                    List<String> types = (List<String>) placeData.get("types");
+                    if (types == null || !types.contains("tourist_attraction") || types.contains("lodging")) {
+                        continue;
+                    }
                     if (resultsCount >= count) break;
                     Map<String, Object> geometry = (Map<String, Object>) placeData.get("geometry");
                     Map<String, Object> locationData = (Map<String, Object>) geometry.get("location");
@@ -70,6 +78,7 @@ public class GooglePlacesServiceIMPL implements GooglePlacesService {
                                 (String) placeData.get("name"),
                                 (double) locationData.get("lat"),
                                 (double) locationData.get("lng"),
+                                generateDescription((String) placeData.get("name"), (String) placeData.get("vicinity")),
                                 rating
                         );
                         allPlaces.add(placeEntity);
@@ -102,5 +111,45 @@ public class GooglePlacesServiceIMPL implements GooglePlacesService {
         }
         return new StandardResponse(200, "sucess", allPlaces);
 
+    }
+
+    private String generateDescription(String name, String address) {
+        String prompt = String.format(
+                "Give a 50 word description for following tourist attraction place in Sri Lanka for a travel app. Return only the description.The place name is: %s. located in: %s",
+                name,address);
+
+        Map<String, Object> requestBody = new HashMap<>();
+        requestBody.put("model", "gpt-3.5-turbo");
+        requestBody.put("messages", Arrays.asList(
+                new HashMap<String, String>() {{
+                    put("role", "system");
+                    put("content", "You are a helpful assistant that generate descriptions for places.");
+                }},
+                new HashMap<String, String>() {{
+                    put("role", "user");
+                    put("content", prompt);
+                }}
+        ));
+        requestBody.put("max_tokens", 100);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.setBearerAuth(openAiApiKey);
+
+        HttpEntity<Map<String, Object>> entity = new HttpEntity<>(requestBody, headers);
+        ResponseEntity<Map> response = restTemplate.exchange(openAiApiUrl, HttpMethod.POST, entity, Map.class);
+
+        if (response.getStatusCode() == HttpStatus.OK) {
+            Map<String, Object> responseBody = response.getBody();
+            if (responseBody != null && responseBody.containsKey("choices")) {
+                List<Map<String, Object>> choices = (List<Map<String, Object>>) responseBody.get("choices");
+                if (!choices.isEmpty()) {
+                    Map<String, Object> message = (Map<String, Object>) choices.get(0).get("message");
+                    String description = (String) message.get("content");
+                    return description;
+                }
+            }
+        }
+        return ("No description found");
     }
 }

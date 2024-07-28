@@ -72,14 +72,24 @@ public class GooglePlacesServiceIMPL implements GooglePlacesService {
                     Map<String, Object> locationData = (Map<String, Object>) geometry.get("location");
                     double rating = placeData.containsKey("rating") ? ((Number) placeData.get("rating")).doubleValue() : 0.0;
 
-                    if(rating>0){
+                    if(rating>0) {
+                        String photoUrl = null;
+                        if (placeData.containsKey("photos")) {
+                            List<Map<String, Object>> photos = (List<Map<String, Object>>) placeData.get("photos");
+                            if (!photos.isEmpty()) {
+                                String photoReference = (String) photos.get(0).get("photo_reference");
+                                photoUrl = String.format("https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photoreference=%s&key=%s", photoReference, apiKey);
+                            }
+                        }
                         placeEntity = new PlaceEntity(
                                 (String) placeData.get("place_id"),
                                 (String) placeData.get("name"),
                                 (double) locationData.get("lat"),
                                 (double) locationData.get("lng"),
                                 generateDescription((String) placeData.get("name"), (String) placeData.get("vicinity")),
+                                photoUrl,
                                 rating
+
                         );
                         allPlaces.add(placeEntity);
 

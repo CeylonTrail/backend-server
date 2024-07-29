@@ -49,6 +49,9 @@ public class UserEntity {
     @Column(name = "forget_password_otp_expired_at")
     private LocalDateTime forgetPasswordOtpExpiredAt;
 
+    @Column(name = "profile_picture_url")
+    private String profilePictureUrl;
+
     @CreatedDate
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;

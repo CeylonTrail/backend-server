@@ -6,6 +6,7 @@ import com.ceylontrail.backend_server.entity.UserEntity;
 import com.ceylontrail.backend_server.util.StandardResponse;
 
 public interface AuthService {
+    Integer getAuthUserId();
     void initialRegisterCheck(String email, String username);
     String activationTokenGenerator();
     String otpGenerator();

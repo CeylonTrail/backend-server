@@ -45,7 +45,7 @@ public class MailServiceIMPL implements MailService {
                         """,
                 user.getFirstname(), user.getForgetPasswordOtp());
 
-        this.sendMail(user.getEmail(), subject, body);
+        //this.sendMail(user.getEmail(), subject, body);
     }
 
     @Override
@@ -61,7 +61,7 @@ public class MailServiceIMPL implements MailService {
                         """,
                 user.getFirstname());
 
-        this.sendMail(user.getEmail(), subject, body);
+        //this.sendMail(user.getEmail(), subject, body);
     }
 
     @Override

@@ -1,6 +1,5 @@
 package com.ceylontrail.backend_server.security;
 
-
 import com.ceylontrail.backend_server.security.webtoken.JwtAuthenticationFilter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -24,6 +23,7 @@ public class SecurityConfig {
 
     @Autowired
     private CustomUserDetailsService customUserDetailsService;
+
     @Autowired
     private JwtAuthenticationFilter jwtAuthenticationFilter;
 
@@ -33,28 +33,24 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(authorizeRequests ->
                         authorizeRequests
-                                .requestMatchers("/api/v1/auth/home","/api/v1/auth/register","/api/v1/auth/login").permitAll()
+                                .requestMatchers("/api/v1/auth/**").permitAll()
                                 .requestMatchers("/api/v1/auth/admin/**").hasRole("ADMIN")
-                                .requestMatchers("/api/v1/auth/traveller/**").hasRole("TRAVELLER")
                                 .anyRequest().authenticated()
                 )
                 //.formLogin(AbstractAuthenticationFilterConfigurer::permitAll)
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
-                .formLogin(httpSecurityFormLoginConfigurer -> {
-                    httpSecurityFormLoginConfigurer
-                            .loginPage("/login")
-                            .successHandler(new AuthenticationSuccessHandler())
-                            .permitAll();
-                });
-
-
+                .formLogin(httpSecurityFormLoginConfigurer -> httpSecurityFormLoginConfigurer
+                        .loginPage("/login")
+                        .successHandler(new AuthenticationSuccessHandler())
+                        .permitAll());
         return http.build();
     }
+
     @Bean
     public UserDetailsService userDetailsService(){
-
         return customUserDetailsService;
     }
+
     @Bean
     public AuthenticationProvider authenticationProvider(){
         DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
@@ -62,14 +58,15 @@ public class SecurityConfig {
         provider.setPasswordEncoder(passwordEncoder());
         return provider;
     }
+
     @Bean
     public AuthenticationManager authenticationManager(){
         return new ProviderManager(authenticationProvider());
     }
 
     @Bean
-    public PasswordEncoder passwordEncoder()
-    {
+    public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
+
 }

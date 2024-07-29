@@ -29,11 +29,23 @@ public class PlaceEntity {
     @Column(name = "rating",columnDefinition = "DOUBLE PRECISION")
     private double rating;
 
-    public PlaceEntity(String placeId, String name, double latitude, double longitude, double rating) {
+//    public PlaceEntity(String placeId, String name, double latitude, double longitude, double rating) {
+//        this.placeId = placeId;
+//        this.name = name;
+//        this.latitude = latitude;
+//        this.longitude = longitude;
+//        this.rating = rating;
+//    }
+
+
+
+    public PlaceEntity(String placeId, String name, double latitude, double longitude, String description, String photoUrl, double rating) {
         this.placeId = placeId;
         this.name = name;
         this.latitude = latitude;
         this.longitude = longitude;
+        this.description = description;
+        this.photoUrl = photoUrl;
         this.rating = rating;
     }
 }

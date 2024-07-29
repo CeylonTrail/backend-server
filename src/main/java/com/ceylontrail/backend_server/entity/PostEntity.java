@@ -1,5 +1,6 @@
 package com.ceylontrail.backend_server.entity;
 
+import com.ceylontrail.backend_server.entity.enums.PostPrivacyEnum;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -35,6 +36,10 @@ public class PostEntity {
 
     @Column(name = "content", columnDefinition = "TEXT")
     private String content;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "privacy")
+    private PostPrivacyEnum privacy;
 
     @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JoinTable( name = "post_likes", joinColumns = @JoinColumn(name = "post_id"), inverseJoinColumns = @JoinColumn(name = "user_id"))

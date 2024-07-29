@@ -7,7 +7,6 @@ import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import com.ceylontrail.backend_server.entity.ServiceProviderEntity.ServiceType;
 
 @AllArgsConstructor
 @NoArgsConstructor
@@ -35,7 +34,7 @@ public class ServiceProviderRegisterDTO {
     private String serviceName;
 
     @NotNull(message = "Service type is required!")
-    private ServiceType serviceType;
+    private String serviceType;
 
     @NotNull(message = "Latitude is required!")
     private Double latitude;

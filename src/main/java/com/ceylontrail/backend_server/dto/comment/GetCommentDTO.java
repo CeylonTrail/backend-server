@@ -1,5 +1,6 @@
 package com.ceylontrail.backend_server.dto.comment;
 
+import com.ceylontrail.backend_server.dto.user.CommunityUserDTO;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -9,11 +10,10 @@ import java.time.LocalDateTime;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class CommentDTO {
+public class GetCommentDTO {
 
     private Long commentId;
-    private Long postId;
-    private int userId;
+    private CommunityUserDTO user;
     private String content;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;

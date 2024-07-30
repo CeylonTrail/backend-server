@@ -19,8 +19,10 @@ public class CustomUserDetail extends User {
         this.id = id;
     }
 
+
     public CustomUserDetail(String email, String password, boolean enabled, boolean accountNonExpired, boolean credentialsNonExpired, boolean accountNonLocked, Collection<? extends GrantedAuthority> authorities, int id) {
         super(email, password, enabled, accountNonExpired, credentialsNonExpired, accountNonLocked, authorities);
         this.id = id;
     }
+
 }

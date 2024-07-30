@@ -2,8 +2,10 @@ package com.ceylontrail.backend_server.service.impl;
 import com.ceylontrail.backend_server.controller.AuthController;
 import com.ceylontrail.backend_server.dto.requests.RequestTripSaveDTO;
 import com.ceylontrail.backend_server.entity.EventEntity;
+import com.ceylontrail.backend_server.entity.PlaceEntity;
 import com.ceylontrail.backend_server.entity.TripEntity;
 import com.ceylontrail.backend_server.repo.EventRepo;
+import com.ceylontrail.backend_server.repo.PlaceRepo;
 import com.ceylontrail.backend_server.repo.TripRepo;
 import com.ceylontrail.backend_server.service.TripService;
 import com.ceylontrail.backend_server.util.StandardResponse;
@@ -26,11 +28,15 @@ public class TripServiceIMPL implements TripService {
     private Mapper mapper;
     @Autowired
     private EventRepo eventRepo;
+    @Autowired
+    private PlaceRepo placeRepo;
+
 
 
     @Override
     public StandardResponse saveTrip(RequestTripSaveDTO requestTripSaveDTO) {
         int userId = authController.getAuthenticatedUserId();
+
         if(!requestTripSaveDTO.getEventSet().isEmpty()) {
             TripEntity trip = new TripEntity(
                     requestTripSaveDTO.getDestination(),
@@ -44,8 +50,18 @@ public class TripServiceIMPL implements TripService {
 
             if(tripRepo.existsById(trip.getTripId())){
                 List<EventEntity> eventList= mapper.DtoListToEntityList(requestTripSaveDTO.getEventSet());
-                for (EventEntity eventEntity : eventList) {
-                    eventEntity.setTrip(trip);
+                for(int i=0;i< eventList.size();i++){
+                    eventList.get(i).setTrip(trip);
+
+                    PlaceEntity placeEntity = mapper.DtoToEntity(eventList.get(i).getPlace());
+                    if (placeEntity != null) {
+                        placeRepo.save(placeEntity);
+                        eventList.get(i).setPlace(placeEntity);
+
+                    } else {
+                        throw new IllegalArgumentException("Place details are missing for event: " + eventList.get(i).getDescription());
+                    }
+
                 }
 
                 if(!eventList.isEmpty()){

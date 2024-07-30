@@ -7,6 +7,7 @@ import com.ceylontrail.backend_server.entity.TripEntity;
 import com.ceylontrail.backend_server.repo.EventRepo;
 import com.ceylontrail.backend_server.repo.PlaceRepo;
 import com.ceylontrail.backend_server.repo.TripRepo;
+import com.ceylontrail.backend_server.service.AuthService;
 import com.ceylontrail.backend_server.service.TripService;
 import com.ceylontrail.backend_server.util.StandardResponse;
 import com.ceylontrail.backend_server.util.mapper.Mapper;
@@ -31,11 +32,14 @@ public class TripServiceIMPL implements TripService {
     @Autowired
     private PlaceRepo placeRepo;
 
+    @Autowired
+    private AuthService authService;
+
 
 
     @Override
     public StandardResponse saveTrip(RequestTripSaveDTO requestTripSaveDTO) {
-        int userId = authController.getAuthenticatedUserId();
+        int userId = authService.getAuthUserId();
 
         if(!requestTripSaveDTO.getEventSet().isEmpty()) {
             TripEntity trip = new TripEntity(

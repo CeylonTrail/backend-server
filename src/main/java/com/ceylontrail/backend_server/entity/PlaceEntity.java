@@ -22,9 +22,9 @@ public class PlaceEntity {
     private double latitude;
     @Column(name = "longitude",columnDefinition = "DOUBLE PRECISION")
     private double longitude;
-    @Column(name = "description",nullable = false)
+    @Column(name = "description", nullable = false, length = 1000)
     private String description;
-    @Column(name = "photo_url")
+    @Column(name = "photo_url" ,nullable = false, length = 1000)
     private String photoUrl;
     @Column(name = "rating",columnDefinition = "DOUBLE PRECISION")
     private double rating;

@@ -1,5 +1,6 @@
 package com.ceylontrail.backend_server.service.impl;
 import com.ceylontrail.backend_server.entity.PlaceEntity;
+import com.ceylontrail.backend_server.repo.PlaceRepo;
 import com.ceylontrail.backend_server.service.PlacesService;
 import com.ceylontrail.backend_server.util.StandardResponse;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,6 +27,9 @@ public class PlacesServiceIMPL implements PlacesService {
     private String openAiApiUrl;
     @Autowired
     private RestTemplate restTemplate;
+
+    @Autowired
+    private PlaceRepo placeRepo;
 
     @Override
     public String getCoordinates(String location) {
@@ -93,6 +97,15 @@ public class PlacesServiceIMPL implements PlacesService {
                                 rating
 
                         );
+
+                        boolean existByPlaceID =placeRepo.existsByPlaceId(placeEntity.getPlaceId());
+                        if(existByPlaceID){
+                            System.out.println("place already in the db");
+                        }else{
+                            placeRepo.save(placeEntity);
+
+                        }
+
                         allPlaces.add(placeEntity);
 
                         System.out.println(placeData);

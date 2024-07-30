@@ -17,5 +17,6 @@ public interface Mapper {
     //Trip Controller
     List<EventEntity> DtoListToEntityList(List<EventDTO> eventSet);
 
-    PlaceEntity DtoToEntity(PlaceEntity place);
+
+    PlaceEntity placeDtoToEntity(PlaceEntity place);
 }

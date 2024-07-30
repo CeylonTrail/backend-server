@@ -19,4 +19,9 @@ public class TripController {
 
         return tripService.saveTrip(requestTripSaveDTO);
     }
+
+    @GetMapping("/all-trip")
+    public StandardResponse getAllTrip(){
+        return tripService.allTrip();
+    }
 }

@@ -3,9 +3,8 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import java.time.LocalDate;
+
 import java.time.LocalDateTime;
-import java.util.Date;
 
 
 @Entity
@@ -23,6 +22,10 @@ public class EventEntity {
     @JoinColumn(name="trip_id", nullable=false)
     private TripEntity trip;
 
+    @ManyToOne
+    @JoinColumn(name = "place_id", nullable = false)
+    private PlaceEntity place;
+
     @Column(name = "description", length = 100,nullable = false)
     private String description;
 
@@ -34,7 +37,5 @@ public class EventEntity {
 
     @Column(name = "update_at",columnDefinition = "TIMESTAMP")
     private LocalDateTime updateAt;
-
-
 
 }

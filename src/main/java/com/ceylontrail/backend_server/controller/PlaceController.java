@@ -1,5 +1,5 @@
 package com.ceylontrail.backend_server.controller;
-import com.ceylontrail.backend_server.service.GooglePlacesService;
+import com.ceylontrail.backend_server.service.PlacesService;
 import com.ceylontrail.backend_server.util.StandardResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("api/v1/auth/traveller")
 public class PlaceController {
     @Autowired
-    private GooglePlacesService googlePlacesService;
+    private PlacesService googlePlacesService;
 
     @GetMapping(
             path = {"/places"},

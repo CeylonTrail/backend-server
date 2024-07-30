@@ -1,6 +1,6 @@
 package com.ceylontrail.backend_server.service.impl;
 import com.ceylontrail.backend_server.entity.PlaceEntity;
-import com.ceylontrail.backend_server.service.GooglePlacesService;
+import com.ceylontrail.backend_server.service.PlacesService;
 import com.ceylontrail.backend_server.util.StandardResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
@@ -11,7 +11,7 @@ import org.springframework.web.client.RestTemplate;
 import java.util.*;
 
 @Service
-public class GooglePlacesServiceIMPL implements GooglePlacesService {
+public class PlacesServiceIMPL implements PlacesService {
 
     @Value("${google.places.api.key}")
     private String apiKey;
@@ -44,8 +44,6 @@ public class GooglePlacesServiceIMPL implements GooglePlacesService {
         }
         return null;
     }
-
-
     @Override
     public StandardResponse getPlaces(String location, int radius, int count) {
         String coordinates = getCoordinates(location);
@@ -64,15 +62,19 @@ public class GooglePlacesServiceIMPL implements GooglePlacesService {
                 List<Map<String, Object>> places = (List<Map<String, Object>>) response.get("results");
                 for (Map<String, Object> placeData : places) {
                     List<String> types = (List<String>) placeData.get("types");
-                    if (types == null || !types.contains("tourist_attraction") || types.contains("lodging")) {
+                    if (
+                            types == null || !types.contains("tourist_attraction") || types.contains("lodging")
+                                    || types.contains("travel_agency") || types.contains("store")
+                    ) {
                         continue;
                     }
                     if (resultsCount >= count) break;
                     Map<String, Object> geometry = (Map<String, Object>) placeData.get("geometry");
                     Map<String, Object> locationData = (Map<String, Object>) geometry.get("location");
                     double rating = placeData.containsKey("rating") ? ((Number) placeData.get("rating")).doubleValue() : 0.0;
+                    int user_rating = placeData.containsKey("user_ratings_total")?((Number) placeData.get("user_ratings_total")).intValue():0;
 
-                    if(rating>0) {
+                    if(rating>2 && user_rating>50) {
                         String photoUrl = null;
                         if (placeData.containsKey("photos")) {
                             List<Map<String, Object>> photos = (List<Map<String, Object>>) placeData.get("photos");
@@ -97,9 +99,7 @@ public class GooglePlacesServiceIMPL implements GooglePlacesService {
                         System.out.println(placeEntity);
 
                         resultsCount++;
-
                     }
-
                 }
 
                 if (response.containsKey("next_page_token")) {
@@ -119,7 +119,7 @@ public class GooglePlacesServiceIMPL implements GooglePlacesService {
             }
 
         }
-        return new StandardResponse(200, "sucess", allPlaces);
+        return new StandardResponse(200, "success", allPlaces);
 
     }
 

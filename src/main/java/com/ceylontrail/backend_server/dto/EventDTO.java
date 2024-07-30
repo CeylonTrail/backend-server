@@ -14,6 +14,8 @@ import java.time.LocalDateTime;
 public class EventDTO {
     private String description;
     private int dayNum;
+    private PlaceDTO place;
     private LocalDateTime createdAt;
     private LocalDateTime updateAt;
+
 }

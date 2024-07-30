@@ -5,4 +5,6 @@ import com.ceylontrail.backend_server.util.StandardResponse;
 
 public interface TripService {
     StandardResponse saveTrip(RequestTripSaveDTO requestTripSaveDTO);
+
+    StandardResponse allTrip();
 }

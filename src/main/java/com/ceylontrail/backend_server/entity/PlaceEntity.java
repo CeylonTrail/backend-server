@@ -12,8 +12,6 @@ import lombok.NoArgsConstructor;
 @Data
 public class PlaceEntity {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
     @Column(name = "place_id" ,nullable = false)
     private String placeId;
     @Column(name = "name",nullable = false)

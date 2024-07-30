@@ -1,5 +1,6 @@
 package com.ceylontrail.backend_server.service.impl;
 import com.ceylontrail.backend_server.controller.AuthController;
+import com.ceylontrail.backend_server.dto.response.ResponseGetAllTripDTO;
 import com.ceylontrail.backend_server.dto.requests.RequestTripSaveDTO;
 import com.ceylontrail.backend_server.entity.EventEntity;
 import com.ceylontrail.backend_server.entity.PlaceEntity;
@@ -16,7 +17,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class TripServiceIMPL implements TripService {
@@ -31,7 +31,6 @@ public class TripServiceIMPL implements TripService {
     private EventRepo eventRepo;
     @Autowired
     private PlaceRepo placeRepo;
-
     @Autowired
     private AuthService authService;
 
@@ -84,5 +83,33 @@ public class TripServiceIMPL implements TripService {
         }else{
             return new StandardResponse(404,"Event data is empty",requestTripSaveDTO);
         }
+    }
+
+
+    @Override
+    public StandardResponse allTrip() {
+        int userId = authService.getAuthUserId();
+        List<TripEntity> allTrips = tripRepo.findAllByUserId(userId);
+
+        if(!allTrips.isEmpty()){
+            List<ResponseGetAllTripDTO> getAllTripDTOS = new ArrayList<>();
+            for (TripEntity tripEntity : allTrips) {
+                ResponseGetAllTripDTO allTripDTO = new ResponseGetAllTripDTO(
+                        tripEntity.getTripId(),
+                        tripEntity.getDestination(),
+                        tripEntity.getDayCount(),
+                        tripEntity.getDescription(),
+                        tripEntity.getCreatedAt(),
+                        tripEntity.getUpdateAt()
+                );
+                getAllTripDTOS.add(allTripDTO);
+
+            }
+            return new StandardResponse(200, "success", getAllTripDTOS);
+
+        }else{
+            return new StandardResponse(200, "success", "No Planned Trips");
+        }
+
     }
 }

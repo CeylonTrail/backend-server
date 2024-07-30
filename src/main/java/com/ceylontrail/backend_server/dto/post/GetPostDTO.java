@@ -1,7 +1,7 @@
 package com.ceylontrail.backend_server.dto.post;
 
-import com.ceylontrail.backend_server.dto.comment.CommentDTO;
-import com.ceylontrail.backend_server.dto.UserDTO;
+import com.ceylontrail.backend_server.dto.comment.GetCommentDTO;
+import com.ceylontrail.backend_server.dto.user.CommunityUserDTO;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -12,14 +12,13 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Data
-public class PostDTO {
+public class GetPostDTO {
 
     private Long postId;
-    private int userId;
-    private int tripId;
+    private CommunityUserDTO user;
     private String content;
-    private List<UserDTO> likes;
-    private List<CommentDTO> comments;
+    private List<CommunityUserDTO> likes;
+    private List<GetCommentDTO> comments;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 

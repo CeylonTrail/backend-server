@@ -5,6 +5,7 @@ import com.ceylontrail.backend_server.entity.RoleEntity;
 import com.ceylontrail.backend_server.entity.ServiceProviderEntity;
 import com.ceylontrail.backend_server.entity.TravellerEntity;
 import com.ceylontrail.backend_server.entity.UserEntity;
+import com.ceylontrail.backend_server.entity.enums.ServiceProviderTypeEnum;
 import com.ceylontrail.backend_server.exception.AlreadyExistingException;
 import com.ceylontrail.backend_server.exception.BadCredentialException;
 import com.ceylontrail.backend_server.exception.NotFoundException;
@@ -12,17 +13,18 @@ import com.ceylontrail.backend_server.repo.RoleRepo;
 import com.ceylontrail.backend_server.repo.ServiceProviderRepo;
 import com.ceylontrail.backend_server.repo.TravellerRepo;
 import com.ceylontrail.backend_server.repo.UserRepo;
+import com.ceylontrail.backend_server.security.CustomUserDetail;
 import com.ceylontrail.backend_server.security.CustomUserDetailsService;
 import com.ceylontrail.backend_server.security.webtoken.JwtService;
 import com.ceylontrail.backend_server.service.AuthService;
 import com.ceylontrail.backend_server.service.MailService;
 import com.ceylontrail.backend_server.util.StandardResponse;
-import com.ceylontrail.backend_server.util.mapper.Mapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -53,9 +55,6 @@ public class AuthServiceIMPL implements AuthService {
     private CustomUserDetailsService customUserDetailsService;
 
     @Autowired
-    private Mapper mapper;
-
-    @Autowired
     private MailService mailService;
   
     @Autowired
@@ -77,9 +76,8 @@ public class AuthServiceIMPL implements AuthService {
         String activationToken;
         while (true){
             activationToken = UUID.randomUUID().toString().replace("-", "");
-            if (!userRepo.existsByActivationToken(activationToken)) {
+            if (!userRepo.existsByActivationToken(activationToken))
                 return activationToken;
-            }
         }
     }
 
@@ -111,9 +109,8 @@ public class AuthServiceIMPL implements AuthService {
                 char randomChar = CHARACTERS.charAt(random.nextInt(CHARACTERS.length()));
                 otp.append(randomChar);
             }
-            if (userRepo.existsByForgetPasswordOtp(otp.toString())) {
+            if (userRepo.existsByForgetPasswordOtp(otp.toString()))
                 return otp.toString();
-            }
         }
     }
 
@@ -121,7 +118,7 @@ public class AuthServiceIMPL implements AuthService {
     @Transactional
     public StandardResponse registerTraveller(TravellerRegisterDTO registerDTO) {
         TravellerEntity traveller = new TravellerEntity();
-        traveller.setUser(createUser(registerDTO.getEmail(), registerDTO.getUsername(), registerDTO.getPassword(), registerDTO.getFirstname(), registerDTO.getLastname(), "TRAVELLER"));
+        traveller.setUser(this.createUser(registerDTO.getEmail(), registerDTO.getUsername(), registerDTO.getPassword(), registerDTO.getFirstname(), registerDTO.getLastname(), "TRAVELLER"));
         travellerRepo.save(traveller);
         mailService.travellerActivationMail(traveller.getUser());
         return new StandardResponse(200, "Registration success", null);
@@ -133,38 +130,41 @@ public class AuthServiceIMPL implements AuthService {
         ServiceProviderEntity serviceProvider = new ServiceProviderEntity();
         serviceProvider.setUser(createUser(registerDTO.getEmail(), registerDTO.getUsername(), registerDTO.getPassword(), registerDTO.getFirstname(), registerDTO.getLastname(), "SERVICE_PROVIDER"));
         serviceProvider.setServiceName(registerDTO.getServiceName());
-        if (registerDTO.getServiceType() == ServiceProviderEntity.ServiceType.A)
-            serviceProvider.setServiceType(ServiceProviderEntity.ServiceType.A);
-        else if (registerDTO.getServiceType() == ServiceProviderEntity.ServiceType.B)
-            serviceProvider.setServiceType(ServiceProviderEntity.ServiceType.B);
+        if (Objects.equals(registerDTO.getServiceType(), String.valueOf(ServiceProviderTypeEnum.ACCOMMODATION)))
+            serviceProvider.setServiceType(ServiceProviderTypeEnum.ACCOMMODATION);
+        else if (Objects.equals(registerDTO.getServiceType(), String.valueOf(ServiceProviderTypeEnum.RESTAURANT)))
+            serviceProvider.setServiceType(ServiceProviderTypeEnum.RESTAURANT);
+        else if (Objects.equals(registerDTO.getServiceType(), String.valueOf(ServiceProviderTypeEnum.EQUIPMENT)))
+            serviceProvider.setServiceType(ServiceProviderTypeEnum.EQUIPMENT);
         else
-            serviceProvider.setServiceType(ServiceProviderEntity.ServiceType.C);
+            serviceProvider.setServiceType(ServiceProviderTypeEnum.OTHER);
         serviceProvider.setLatitude(registerDTO.getLatitude());
         serviceProvider.setLongitude(registerDTO.getLongitude());
         serviceProviderRepo.save(serviceProvider);
         mailService.serviceProviderActivationMail(serviceProvider.getUser(), serviceProvider.getServiceName());
         return new StandardResponse(200, "Registration success", null);
-        }
+    }
 
     @Override
     public StandardResponse login(LoginDTO loginDTO) {
-         if(userRepo.existsByEmail(loginDTO.getEmail())){
+         if(userRepo.existsByEmail(loginDTO.getEmail())) {
+             Authentication authentication;
              try {
-                 Authentication authentication = authenticationManager.authenticate(
+                 authentication = authenticationManager.authenticate(
                          new UsernamePasswordAuthenticationToken(
                                  loginDTO.getEmail(),
                                  loginDTO.getPassword())
                  );
-                 if (authentication.isAuthenticated()) {
-                     Map<String, String> tokenMap = new HashMap<>();
-                     tokenMap.put("token", jwtService.generateToken(customUserDetailsService.loadUserByUsername(loginDTO.getEmail())));
-                     return new StandardResponse(200, "Login success", tokenMap);
-                 }
              } catch (BadCredentialsException e) {
                  throw new BadCredentialException("Password is incorrect");
              }
+             if (authentication.isAuthenticated()) {
+                 Map<String, String> tokenMap = new HashMap<>();
+                 tokenMap.put("token", jwtService.generateToken(customUserDetailsService.loadUserByUsername(loginDTO.getEmail())));
+                 return new StandardResponse(200, "Login success", tokenMap);
+             }
          } else throw new NotFoundException("Email not found");
-        return null;
+        return new StandardResponse(500, "Internal server error", null);
     }
 
     @Override
@@ -205,6 +205,15 @@ public class AuthServiceIMPL implements AuthService {
         userRepo.save(user);
         mailService.passwordResetSuccessMail(user);
         return new StandardResponse(200, "Password reset successfully", null);
+    }
+
+    @Override
+    public Integer getAuthUserId() {
+        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        if (principal instanceof CustomUserDetail) {
+            return ((CustomUserDetail) principal).getId();
+        }
+        return 0;
     }
 
 }

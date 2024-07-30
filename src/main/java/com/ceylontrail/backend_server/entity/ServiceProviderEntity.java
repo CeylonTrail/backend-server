@@ -1,5 +1,6 @@
 package com.ceylontrail.backend_server.entity;
 
+import com.ceylontrail.backend_server.entity.enums.ServiceProviderTypeEnum;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -24,19 +25,17 @@ public class ServiceProviderEntity {
     @Column(name = "service_name")
     private String serviceName;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "service_type")
+    private ServiceProviderTypeEnum serviceType;
+
     @Column(name = "latitude")
     private double latitude;
 
     @Column(name = "longitude")
     private double longitude;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "service_type")
-    private ServiceType serviceType;
+    @Column(name = "cover_picture_url")
+    private String coverPictureUrl;
 
-    public enum ServiceType {
-        A,
-        B,
-        C
-    }
 }

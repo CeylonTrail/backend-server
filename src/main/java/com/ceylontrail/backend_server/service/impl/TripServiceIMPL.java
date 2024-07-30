@@ -16,13 +16,13 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class TripServiceIMPL implements TripService {
 
     @Autowired
     private AuthController authController;
-
     @Autowired
     private TripRepo tripRepo;
     @Autowired
@@ -59,13 +59,21 @@ public class TripServiceIMPL implements TripService {
 
                     PlaceEntity placeEntity = mapper.DtoToEntity(eventList.get(i).getPlace());
                     if (placeEntity != null) {
-                        placeRepo.save(placeEntity);
-                        eventList.get(i).setPlace(placeEntity);
 
+                        boolean existsByPlace = placeRepo.existsByPlaceId(placeEntity.getPlaceId());
+                            if(existsByPlace){
+                                PlaceEntity existsEntity = placeRepo.findByPlaceId(placeEntity.getPlaceId());
+                                eventList.get(i).setPlace(existsEntity);
+                                System.out.println("location already has been saved");
+
+                            }else{
+                                placeRepo.save(placeEntity);
+                                eventList.get(i).setPlace(placeEntity);
+
+                            }
                     } else {
                         throw new IllegalArgumentException("Place details are missing for event: " + eventList.get(i).getDescription());
                     }
-
                 }
 
                 if(!eventList.isEmpty()){
@@ -76,8 +84,5 @@ public class TripServiceIMPL implements TripService {
         }else{
             return new StandardResponse(404,"Event data is empty",requestTripSaveDTO);
         }
-
-
-
     }
 }

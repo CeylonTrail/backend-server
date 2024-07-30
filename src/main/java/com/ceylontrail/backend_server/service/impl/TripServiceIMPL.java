@@ -56,7 +56,7 @@ public class TripServiceIMPL implements TripService {
                 for(int i=0;i< eventList.size();i++){
                     eventList.get(i).setTrip(trip);
 
-                    PlaceEntity placeEntity = mapper.DtoToEntity(eventList.get(i).getPlace());
+                    PlaceEntity placeEntity = mapper.placeDtoToEntity(eventList.get(i).getPlace());
                     if (placeEntity != null) {
 
                         boolean existsByPlace = placeRepo.existsByPlaceId(placeEntity.getPlaceId());

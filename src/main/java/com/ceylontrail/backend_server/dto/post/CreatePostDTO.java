@@ -17,8 +17,9 @@ public class CreatePostDTO {
 
     private int tripId;
 
-    @NotBlank(message = "Privacy Type is reuire")
+    @NotBlank(message = "Privacy Type is required")
     private String privacy;
+
     private List<MultipartFile> images;
 
 }

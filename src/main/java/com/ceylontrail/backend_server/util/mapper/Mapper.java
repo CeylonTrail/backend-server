@@ -19,4 +19,8 @@ public interface Mapper {
 
 
     PlaceEntity placeDtoToEntity(PlaceEntity place);
+
+
+    //Event Controller
+    List<EventDTO> eventListToDtoList(List<EventEntity> eventList);
 }

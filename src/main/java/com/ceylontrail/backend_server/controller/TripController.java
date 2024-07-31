@@ -1,5 +1,4 @@
 package com.ceylontrail.backend_server.controller;
-
 import com.ceylontrail.backend_server.dto.requests.RequestTripSaveDTO;
 import com.ceylontrail.backend_server.service.TripService;
 import com.ceylontrail.backend_server.util.StandardResponse;
@@ -19,9 +18,15 @@ public class TripController {
 
         return tripService.saveTrip(requestTripSaveDTO);
     }
-
     @GetMapping("/all-trip")
     public StandardResponse getAllTrip(){
         return tripService.allTrip();
     }
+
+    @GetMapping("/get-trip/{trip_id}")
+    public StandardResponse getTripById(@PathVariable(value = "trip_id") int tripId){
+        return tripService.getTrip(tripId);
+
+    }
+
 }

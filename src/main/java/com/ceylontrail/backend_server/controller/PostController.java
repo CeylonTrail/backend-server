@@ -18,9 +18,22 @@ public class PostController {
     @Autowired
     private PostService postService;
 
+    // Posts created by logged user
     @GetMapping
-    public StandardResponse getPosts() {
-        return postService.getPosts();
+    public StandardResponse getUserPosts() {
+        return postService.getUserPosts();
+    }
+
+    // Post shown in community feed when logged in
+    @GetMapping(path = "/community-feed")
+    public StandardResponse getCommunityPosts() {
+        return postService.getCommunityPosts();
+    }
+
+    // Post shown in community feed when not logged in
+    @GetMapping(path = "/community-feed/public")
+    public StandardResponse getCommunityPublicPosts() {
+        return postService.getCommunityPublicPosts();
     }
 
     @GetMapping("/{postId}")
@@ -28,7 +41,7 @@ public class PostController {
         return postService.getPostByPostId(Long.valueOf(postId));
     }
 
-    @PostMapping(consumes = "multipart/form-data")
+    @PostMapping
     public StandardResponse createPost(@ModelAttribute CreatePostDTO postDTO) {
         return postService.createPost(postDTO);
     }

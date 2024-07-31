@@ -1,5 +1,6 @@
 package com.ceylontrail.backend_server.service.impl;
 
+import com.ceylontrail.backend_server.entity.ServiceProviderEntity;
 import com.ceylontrail.backend_server.entity.UserEntity;
 import com.ceylontrail.backend_server.service.MailService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -83,7 +84,7 @@ public class MailServiceIMPL implements MailService {
     }
 
     @Override
-    public void serviceProviderActivationMail(UserEntity user, String serviceName) {
+    public void serviceProviderActivationMail(ServiceProviderEntity serviceProvider) {
         String subject = "CeylonTrail - Service Provider Account Activation";
         String body = String.format("""
                         Dear %s,
@@ -95,7 +96,7 @@ public class MailServiceIMPL implements MailService {
                         Best regards,
                         CeylonTrail Team
                         """,
-                user.getFirstname(), serviceName);
+                serviceProvider.getUser().getFirstname(), serviceProvider.getServiceName());
 
         //this.sendMail(user.getEmail(), subject, body);
     }

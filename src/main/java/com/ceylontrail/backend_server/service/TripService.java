@@ -9,4 +9,6 @@ public interface TripService {
     StandardResponse allTrip();
 
     StandardResponse getTrip(int tripId);
+
+    StandardResponse deleteTrip(int tripId);
 }

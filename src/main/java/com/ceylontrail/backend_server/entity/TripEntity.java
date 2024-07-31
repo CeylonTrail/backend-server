@@ -4,15 +4,20 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDate;
 import java.util.Set;
+import java.util.List;
 
 @Entity
 @Table(name = "trip")
 @NoArgsConstructor
 @AllArgsConstructor
 @Data
+@EntityListeners(AuditingEntityListener.class)
 public class  TripEntity {
     @Id
     @Column(name = "trip_id",length = 45)
@@ -31,14 +36,16 @@ public class  TripEntity {
     @Column(name = "description",length = 255)
     private String description;
 
+    @CreatedDate
     @Column(name = "created_at",columnDefinition = "TIMESTAMP")
     private LocalDate createdAt;
 
+    @LastModifiedDate
     @Column(name = "update_at",columnDefinition = "TIMESTAMP")
     private LocalDate updateAt;
 
-    @OneToMany(mappedBy="trip")
-    private Set<EventEntity> eventSet;
+    @OneToMany(mappedBy="trip",cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<EventEntity> eventSet;
 
     public TripEntity(String destination, int dayCount, String description, LocalDate createdAt, LocalDate updateAt) {
         this.destination = destination;

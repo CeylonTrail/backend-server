@@ -129,7 +129,7 @@ public class AuthServiceIMPL implements AuthService {
     @Transactional
     public StandardResponse registerServiceProvider(ServiceProviderRegisterDTO registerDTO) {
         ServiceProviderEntity serviceProvider = new ServiceProviderEntity();
-        serviceProvider.setUser(createUser(registerDTO.getEmail(), registerDTO.getUsername(), registerDTO.getPassword(), registerDTO.getFirstname(), registerDTO.getLastname(), "SERVICE_PROVIDER"));
+        serviceProvider.setUser(this.createUser(registerDTO.getEmail(), registerDTO.getUsername(), registerDTO.getPassword(), registerDTO.getFirstname(), registerDTO.getLastname(), "SERVICE_PROVIDER"));
         serviceProvider.setServiceName(registerDTO.getServiceName());
         if (Objects.equals(registerDTO.getServiceType(), String.valueOf(ServiceProviderTypeEnum.ACCOMMODATION)))
             serviceProvider.setServiceType(ServiceProviderTypeEnum.ACCOMMODATION);
@@ -139,10 +139,8 @@ public class AuthServiceIMPL implements AuthService {
             serviceProvider.setServiceType(ServiceProviderTypeEnum.EQUIPMENT);
         else
             serviceProvider.setServiceType(ServiceProviderTypeEnum.OTHER);
-        serviceProvider.setLatitude(registerDTO.getLatitude());
-        serviceProvider.setLongitude(registerDTO.getLongitude());
         serviceProviderRepo.save(serviceProvider);
-        mailService.serviceProviderActivationMail(serviceProvider.getUser(), serviceProvider.getServiceName());
+        mailService.serviceProviderActivationMail(serviceProvider);
         return new StandardResponse(200, "Registration success", null);
     }
 

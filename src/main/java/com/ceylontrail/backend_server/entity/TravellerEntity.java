@@ -30,5 +30,10 @@ public class TravellerEntity {
     @CollectionTable(name = "traveller_interests", joinColumns = @JoinColumn(name = "traveller_id"))
     @Column(name = "interests")
     private List<String> interests = new ArrayList<>();
+    @OneToMany(mappedBy = "traveller", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ExpenseEntity> expenses = new ArrayList<>();
+
+    @OneToMany(mappedBy = "traveller", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<TripEntity> trips = new ArrayList<>();
 
 }

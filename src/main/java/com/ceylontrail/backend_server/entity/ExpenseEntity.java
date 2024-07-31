@@ -23,11 +23,12 @@ public class ExpenseEntity {
     @JoinColumn(name="trip_id", nullable=false)
     private TripEntity trip;
 
+    @ManyToOne
+    @JoinColumn(name="traveller_id", nullable=false)
+    private TravellerEntity traveller;
+
     @Column(name = "category", length = 100,nullable = false)
     private String category;
-
-    @Column(name = "description", length = 100,nullable = false)
-    private String description;
 
     @Column(name = "amount",nullable = false)
     private double amount;

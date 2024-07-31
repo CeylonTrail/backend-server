@@ -11,4 +11,5 @@ public interface TripService {
     StandardResponse getTrip(int tripId);
 
     StandardResponse deleteTrip(int tripId);
+
 }

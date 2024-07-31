@@ -3,6 +3,7 @@ package com.ceylontrail.backend_server.service.impl;
 import com.ceylontrail.backend_server.dto.comment.GetCommentDTO;
 import com.ceylontrail.backend_server.dto.post.*;
 import com.ceylontrail.backend_server.dto.user.CommunityUserDTO;
+import com.ceylontrail.backend_server.entity.ImageEntity;
 import com.ceylontrail.backend_server.entity.PostEntity;
 import com.ceylontrail.backend_server.entity.UserEntity;
 import com.ceylontrail.backend_server.entity.enums.PostPrivacyEnum;
@@ -74,15 +75,45 @@ public class PostServiceIMPL implements PostService {
                     );
                 })
                 .collect(Collectors.toList());
+        List<String> images = post.getImages().stream()
+                .map(ImageEntity::getUrl).
+                collect(Collectors.toList());
         return new GetPostDTO(
                 post.getPostId(),
                 new CommunityUserDTO(user.getUserId(), user.getUsername(), user.getProfilePictureUrl()),
                 post.getContent(),
+                post.getPrivacy(),
                 likes,
                 comments,
+                images,
                 post.getCreatedAt(),
                 post.getUpdatedAt()
         );
+    }
+
+    @Override
+    public StandardResponse getCommunityPublicPosts() {
+        List<GetPostDTO> postsMap = postRepo.findPostEntitiesByPrivacyInOrderByUpdatedAtDesc(List.of(PostPrivacyEnum.PUBLIC)).stream()
+                .map(this::postPreProcessToSend)
+                .collect(Collectors.toList());
+        return new StandardResponse(200, "Posts fetched successfully", postsMap);
+    }
+
+    @Override
+    public StandardResponse getCommunityPosts() {
+        // Need to randomized post order
+        List<GetPostDTO> postsMap = postRepo.findAll().stream()
+                .map(this::postPreProcessToSend)
+                .collect(Collectors.toList());
+        return new StandardResponse(200, "Posts fetched successfully", postsMap);
+    }
+
+    @Override
+    public StandardResponse getUserPosts() {
+        List<GetPostDTO> postsMap = postRepo.findPostEntitiesByUser_UserIdOrderByCreatedAtDesc(authService.getAuthUserId()).stream()
+                .map(this::postPreProcessToSend)
+                .collect(Collectors.toList());
+        return new StandardResponse(200, "Posts fetched successfully", postsMap);
     }
 
     @Override
@@ -90,15 +121,6 @@ public class PostServiceIMPL implements PostService {
         PostEntity post = this.initialPostCheck(postId);
         GetPostDTO postDTO = this.postPreProcessToSend(post);
         return new StandardResponse(200, "Post fetched successfully", postDTO);
-    }
-
-    @Override
-    public StandardResponse getPosts() {
-        // Need to randomized post order
-        List<GetPostDTO> postsMap = postRepo.findAll().stream()
-                .map(this::postPreProcessToSend)
-                .collect(Collectors.toList());
-        return new StandardResponse(200, "Posts fetched successfully", postsMap);
     }
 
     @Override

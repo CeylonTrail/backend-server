@@ -28,9 +28,11 @@ public class TripController {
         return tripService.getTrip(tripId);
 
     }
+
     @DeleteMapping("/delete-trip/{trip_id}")
     public StandardResponse deleteTrip(@PathVariable(value = "trip_id") int tripId){
         return tripService.deleteTrip(tripId);
     }
+
 
 }

@@ -11,18 +11,11 @@ import java.io.IOException;
 public class AuthenticationSuccessHandler extends SavedRequestAwareAuthenticationSuccessHandler {
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws ServletException, IOException {
-        boolean isAdmin = authentication.getAuthorities().stream()
-                .anyMatch(grantedAuthority -> grantedAuthority.getAuthority().equals("ROLE_ADMIN"));
-        boolean isTraveller = authentication.getAuthorities().stream()
-                .anyMatch(grantedAuthority -> grantedAuthority.getAuthority().equals("ROLE_TRAVELLER"));
-        if(isAdmin){
-            setDefaultTargetUrl("/admin/home");
-
-        } else if (isTraveller) {
-            setDefaultTargetUrl("/traveller/home");
-        }else{
-            setDefaultTargetUrl("/servicer/home");
-        }
+//        boolean isAdmin = authentication.getAuthorities().stream()
+//                .anyMatch(grantedAuthority -> grantedAuthority.getAuthority().equals("ROLE_ADMIN"));
+//        boolean isTraveller = authentication.getAuthorities().stream()
+//                .anyMatch(grantedAuthority -> grantedAuthority.getAuthority().equals("ROLE_TRAVELLER"));
+        setDefaultTargetUrl("/swagger-ui/index.html");
         super.onAuthenticationSuccess(request, response, authentication);
     }
 }

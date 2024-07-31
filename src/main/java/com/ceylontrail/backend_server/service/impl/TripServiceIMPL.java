@@ -124,7 +124,6 @@ public class TripServiceIMPL implements TripService {
         }
         return new StandardResponse(200, "retrieve success", eventDTOS);
 
-
     }
 
     @Override
@@ -136,4 +135,5 @@ public class TripServiceIMPL implements TripService {
             return new StandardResponse(404,"Success","Trip not found");
         }
     }
+    
 }

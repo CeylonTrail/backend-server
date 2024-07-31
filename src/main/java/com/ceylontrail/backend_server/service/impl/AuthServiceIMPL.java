@@ -1,6 +1,7 @@
 package com.ceylontrail.backend_server.service.impl;
 
 import com.ceylontrail.backend_server.dto.auth.*;
+import com.ceylontrail.backend_server.dto.user.LoggedUserDTO;
 import com.ceylontrail.backend_server.entity.RoleEntity;
 import com.ceylontrail.backend_server.entity.ServiceProviderEntity;
 import com.ceylontrail.backend_server.entity.TravellerEntity;
@@ -151,20 +152,38 @@ public class AuthServiceIMPL implements AuthService {
              Authentication authentication;
              try {
                  authentication = authenticationManager.authenticate(
-                         new UsernamePasswordAuthenticationToken(
-                                 loginDTO.getEmail(),
-                                 loginDTO.getPassword())
+                         new UsernamePasswordAuthenticationToken(loginDTO.getEmail(), loginDTO.getPassword())
                  );
              } catch (BadCredentialsException e) {
                  throw new BadCredentialException("Password is incorrect");
              }
              if (authentication.isAuthenticated()) {
-                 Map<String, String> tokenMap = new HashMap<>();
-                 tokenMap.put("token", jwtService.generateToken(customUserDetailsService.loadUserByUsername(loginDTO.getEmail())));
-                 return new StandardResponse(200, "Login success", tokenMap);
+                 UserEntity user = userRepo.findByEmail(loginDTO.getEmail());
+                 LoggedUserDTO loggedUserDTO = new LoggedUserDTO(
+                         jwtService.generateToken(customUserDetailsService.loadUserByUsername(loginDTO.getEmail())),
+                         user.getUserId(),
+                         user.getUsername(),
+                         user.getEmail(),
+                         user.getFirstname(),
+                         user.getLastname(),
+                         user.getActivationToken() == null,
+                         user.getRoles().get(0).getRoleName(),
+                         user.getProfilePictureUrl()
+                 );
+                 return new StandardResponse(200, "Login success", loggedUserDTO);
              }
          } else throw new NotFoundException("Email not found");
         return new StandardResponse(500, "Internal server error", null);
+    }
+
+    @Override
+    public StandardResponse activate(ActivationTokenDTO tokenDTO) {
+       if (!userRepo.existsByActivationToken(tokenDTO.getActivationToken()))
+           throw new NotFoundException("Activation token not found");
+       UserEntity user = userRepo.findByActivationToken(tokenDTO.getActivationToken());
+       user.setActivationToken(null);
+       userRepo.save(user);
+       return new StandardResponse(200, "Account activate successfully", null);
     }
 
     @Override

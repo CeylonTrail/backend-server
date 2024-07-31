@@ -5,15 +5,12 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-@Data
-@AllArgsConstructor
 @NoArgsConstructor
-public class LoginDTO {
+@AllArgsConstructor
+@Data
+public class ActivationTokenDTO {
 
-    @NotBlank(message = "Email is required!")
-    private String email;
-
-    @NotBlank(message = "Password is required!")
-    private String password;
+    @NotBlank(message = "Activation Token is required!")
+    private String activationToken;
 
 }

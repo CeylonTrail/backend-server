@@ -175,4 +175,54 @@ public class PlacesServiceIMPL implements PlacesService {
         }
         return ("No description found");
     }
+
+    public String searchPlaceByNameFromAPI(String placeName) {
+        String url = String.format(
+                "https://maps.googleapis.com/maps/api/place/findplacefromtext/json?input=%s&inputtype=textquery&fields=place_id,name,formatted_address&key=%s",
+                placeName, apiKey
+        );
+        ResponseEntity<Map> response = restTemplate.getForEntity(url, Map.class);
+        System.out.println("response: " + response);
+
+        if (response.getStatusCode() == HttpStatus.OK) {
+            Map<String, Object> responseBody = response.getBody();
+            if (responseBody != null && responseBody.containsKey("candidates")) {
+                Map<String, Object> candidate = ((List<Map<String, Object>>) responseBody.get("candidates")).get(0);
+                String placeId = (String) candidate.get("place_id");
+                String photoUrl = getPlacePhotoUrlFromAPI(placeId);
+                return photoUrl;
+            }
+        }
+        return null;
+    }
+
+    public String getPlacePhotoUrlFromAPI(String placeId) {
+        String url = String.format("https://maps.googleapis.com/maps/api/place/details/json?place_id=%s&key=%s", placeId, apiKey);
+        ResponseEntity<Map> response = restTemplate.getForEntity(url, Map.class);
+
+        if (response.getStatusCode() == HttpStatus.OK) {
+            Map<String, Object> responseBody = response.getBody();
+            if (responseBody != null && responseBody.containsKey("result")) {
+                Map<String, Object> place = (Map<String, Object>) responseBody.get("result");
+
+                if (place.containsKey("photos")) {
+                    List<Map<String, Object>> photos = (List<Map<String, Object>>) place.get("photos");
+
+                    System.out.println(photos);
+                    if (!photos.isEmpty()) {
+                        String photoReference = (String) photos.get(0).get("photo_reference");
+                        String photoUrl = String.format(
+                                "https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photoreference=%s&key=%s",
+                                photoReference, apiKey
+                        );
+                        return photoUrl; // Return the photo URL
+                    }
+                }
+            }
+        }
+        return null;
+    }
+
+
+
 }

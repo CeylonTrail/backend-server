@@ -1,5 +1,6 @@
 package com.ceylontrail.backend_server.service.impl;
 import com.ceylontrail.backend_server.controller.AuthController;
+import com.ceylontrail.backend_server.dto.EventDTO;
 import com.ceylontrail.backend_server.dto.response.ResponseGetAllTripDTO;
 import com.ceylontrail.backend_server.dto.requests.RequestTripSaveDTO;
 import com.ceylontrail.backend_server.entity.EventEntity;
@@ -110,6 +111,19 @@ public class TripServiceIMPL implements TripService {
         }else{
             return new StandardResponse(200, "success", "No Planned Trips");
         }
+
+    }
+
+    @Override
+    public StandardResponse getTrip(int tripId) {
+        List<EventDTO> eventDTOS = null;
+        if (tripRepo.existsById(tripId)) {
+            List<EventEntity> eventList = eventRepo.findAllByTrip_TripId(tripId);
+            eventDTOS = mapper.eventListToDtoList(eventList);
+
+        }
+        return new StandardResponse(200, "success", eventDTOS);
+
 
     }
 }

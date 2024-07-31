@@ -4,6 +4,8 @@ import com.ceylontrail.backend_server.util.StandardResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Map;
+
 @CrossOrigin
 @RestController
 @RequestMapping("api/v1/auth/traveller")
@@ -23,6 +25,14 @@ public class PlaceController {
     ) {
        return googlePlacesService.getPlaces(location,radius,count);
 
+    }
+
+    @GetMapping(
+            path = "/get-place-by-name",
+            params = {"placename"}
+    )
+    public String getPlaceByName(@RequestParam(value = "placename") String placeName){
+        return googlePlacesService.searchPlaceByNameFromAPI(placeName).toString();
     }
 
 }

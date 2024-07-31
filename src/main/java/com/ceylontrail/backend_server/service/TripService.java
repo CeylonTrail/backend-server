@@ -7,4 +7,6 @@ public interface TripService {
     StandardResponse saveTrip(RequestTripSaveDTO requestTripSaveDTO);
 
     StandardResponse allTrip();
+
+    StandardResponse getTrip(int tripId);
 }

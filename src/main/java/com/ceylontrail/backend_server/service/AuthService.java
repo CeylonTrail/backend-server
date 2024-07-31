@@ -14,6 +14,7 @@ public interface AuthService {
     StandardResponse registerTraveller(TravellerRegisterDTO registerDTO);
     StandardResponse registerServiceProvider(ServiceProviderRegisterDTO registerDTO);
     StandardResponse login(LoginDTO loginDTO);
+    StandardResponse activate(ActivationTokenDTO tokenDTO);
     StandardResponse forgetPassword(EmailDTO emailDTO);
     StandardResponse validateOtp(OtpDTO otpDTO);
     StandardResponse resetPassword(ResetPasswordDTO resetDTO);

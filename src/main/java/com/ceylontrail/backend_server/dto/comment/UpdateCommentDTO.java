@@ -14,9 +14,6 @@ public class UpdateCommentDTO {
     @NotNull(message = "Comment Id is required!")
     private Long commentId;
 
-    @NotNull(message = "Post Id is required!")
-    private Long postId;
-
     @NotBlank(message = "Content is required!")
     private String content;
 

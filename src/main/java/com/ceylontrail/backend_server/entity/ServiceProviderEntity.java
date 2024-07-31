@@ -29,12 +29,6 @@ public class ServiceProviderEntity {
     @Column(name = "service_type")
     private ServiceProviderTypeEnum serviceType;
 
-    @Column(name = "latitude")
-    private double latitude;
-
-    @Column(name = "longitude")
-    private double longitude;
-
     @Column(name = "cover_picture_url")
     private String coverPictureUrl;
 

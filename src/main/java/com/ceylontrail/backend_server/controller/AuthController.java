@@ -30,6 +30,11 @@ public class AuthController {
         return authService.login(loginDTO);
     }
 
+    @PostMapping("/activate")
+    public StandardResponse activate(@Valid @RequestBody ActivationTokenDTO tokenDTO){
+        return authService.activate(tokenDTO);
+    }
+
     @PostMapping("/forget-password")
     public StandardResponse forgetPassword(@Valid @RequestBody EmailDTO emailDTO) {
         return authService.forgetPassword(emailDTO);

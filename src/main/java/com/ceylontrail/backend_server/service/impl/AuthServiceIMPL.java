@@ -198,11 +198,11 @@ public class AuthServiceIMPL implements AuthService {
 
     @Override
     public StandardResponse validateOtp(OtpDTO otpDTO) {
-        if (userRepo.existsByForgetPasswordOtp(otpDTO.getOtp()))
-            throw new RuntimeException("Otp not found");
+        if (!userRepo.existsByForgetPasswordOtp(otpDTO.getOtp()))
+            throw new NotFoundException("Otp not found");
         UserEntity user = userRepo.findByForgetPasswordOtp(otpDTO.getOtp());
         if (user.getForgetPasswordOtpExpiredAt().isBefore(LocalDateTime.now()))
-            throw new RuntimeException("OTP has expired");
+            throw new BadCredentialException("OTP has expired");
         Map<String, String> userMap = new HashMap<>();
         userMap.put("email", user.getEmail());
         userMap.put("otp", otpDTO.getOtp());
@@ -213,8 +213,8 @@ public class AuthServiceIMPL implements AuthService {
     public StandardResponse resetPassword(ResetPasswordDTO resetDTO) {
         if (!userRepo.existsByEmail(resetDTO.getEmail()))
             throw new NotFoundException("Email not found");
-        if (userRepo.existsByForgetPasswordOtp(resetDTO.getOtp()))
-            throw new RuntimeException("Otp not found");
+        if (!userRepo.existsByForgetPasswordOtp(resetDTO.getOtp()))
+            throw new NotFoundException("Otp not found");
         UserEntity user = userRepo.findByEmail(resetDTO.getEmail());
         user.setForgetPasswordOtp(null);
         user.setForgetPasswordOtpExpiredAt(null);

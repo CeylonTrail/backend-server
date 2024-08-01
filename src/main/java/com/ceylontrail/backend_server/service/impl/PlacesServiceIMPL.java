@@ -1,14 +1,16 @@
 package com.ceylontrail.backend_server.service.impl;
+import com.ceylontrail.backend_server.config.ByteArrayMultipartFile;
 import com.ceylontrail.backend_server.entity.PlaceEntity;
 import com.ceylontrail.backend_server.repo.PlaceRepo;
 import com.ceylontrail.backend_server.service.PlacesService;
+import com.ceylontrail.backend_server.util.FileUploadUtil;
 import com.ceylontrail.backend_server.util.StandardResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.client.RestTemplate;
-
+import org.springframework.web.multipart.MultipartFile;
 import java.util.*;
 
 @Service
@@ -31,6 +33,9 @@ public class PlacesServiceIMPL implements PlacesService {
     @Autowired
     private PlaceRepo placeRepo;
 
+    @Autowired
+    private FileUploadUtil fileUploadUtil;
+
     @Override
     public String getCoordinates(String location) {
         String url = String.format("https://maps.googleapis.com/maps/api/geocode/json?address=%s&key=%s", location, apiKey);
@@ -38,12 +43,15 @@ public class PlacesServiceIMPL implements PlacesService {
 
         if (response != null && response.containsKey("results")) {
             List<Map<String, Object>> results = (List<Map<String, Object>>) response.get("results");
+
             if (!results.isEmpty()) {
                 Map<String, Object> geometry = (Map<String, Object>) results.get(0).get("geometry");
                 Map<String, Object> locationMap = (Map<String, Object>) geometry.get("location");
                 String latitude = locationMap.get("lat").toString();
                 String longitude = locationMap.get("lng").toString();
                 return latitude + "," + longitude;
+            }else{
+                return "location not found "+location;
             }
         }
         return null;
@@ -103,14 +111,10 @@ public class PlacesServiceIMPL implements PlacesService {
                             System.out.println("place already in the db");
                         }else{
                             placeRepo.save(placeEntity);
-
                         }
-
                         allPlaces.add(placeEntity);
-
                         System.out.println(placeData);
                         System.out.println(placeEntity);
-
                         resultsCount++;
                     }
                 }
@@ -133,7 +137,6 @@ public class PlacesServiceIMPL implements PlacesService {
 
         }
         return new StandardResponse(200, "success", allPlaces);
-
     }
 
     private String generateDescription(String name, String address) {
@@ -184,16 +187,18 @@ public class PlacesServiceIMPL implements PlacesService {
         ResponseEntity<Map> response = restTemplate.getForEntity(url, Map.class);
         System.out.println("response: " + response);
 
+        String imageUrl = null;
         if (response.getStatusCode() == HttpStatus.OK) {
             Map<String, Object> responseBody = response.getBody();
             if (responseBody != null && responseBody.containsKey("candidates")) {
                 Map<String, Object> candidate = ((List<Map<String, Object>>) responseBody.get("candidates")).get(0);
                 String placeId = (String) candidate.get("place_id");
                 String photoUrl = getPlacePhotoUrlFromAPI(placeId);
-                return photoUrl;
+                imageUrl = savePlacePhoto(photoUrl, placeName.toLowerCase(Locale.ROOT));
             }
         }
-        return null;
+        return imageUrl;
+
     }
 
     public String getPlacePhotoUrlFromAPI(String placeId) {
@@ -215,12 +220,34 @@ public class PlacesServiceIMPL implements PlacesService {
                                 "https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photoreference=%s&key=%s",
                                 photoReference, apiKey
                         );
-                        return photoUrl; // Return the photo URL
+                        return photoUrl;
                     }
                 }
             }
         }
         return null;
+    }
+
+
+    private String savePlacePhoto(String photoUrl, String place) {
+        String savedFileName = null;
+        try {
+            ResponseEntity<byte[]> response = restTemplate.getForEntity(photoUrl, byte[].class);
+            if (response.getStatusCode() == HttpStatus.OK) {
+                byte[] imageBytes = response.getBody();
+                if (imageBytes != null) {
+                    String fileName = place.replaceAll("\\s+", "_") + ".jpg";
+                    MultipartFile multipartFile = new ByteArrayMultipartFile("file", fileName, "image/jpeg", imageBytes);
+                    savedFileName = fileUploadUtil.saveFile(multipartFile);
+                }else{
+                    return "Image Not Found";
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException("Failed to fetch or save photo for place: " + place, e);
+        }
+        return savedFileName;
     }
 
 

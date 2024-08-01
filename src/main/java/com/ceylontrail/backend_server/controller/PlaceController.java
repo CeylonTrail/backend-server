@@ -32,7 +32,7 @@ public class PlaceController {
             params = {"placename"}
     )
     public String getPlaceByName(@RequestParam(value = "placename") String placeName){
-        return googlePlacesService.searchPlaceByNameFromAPI(placeName).toString();
+         return googlePlacesService.searchPlaceByNameFromAPI(placeName);
     }
 
 }

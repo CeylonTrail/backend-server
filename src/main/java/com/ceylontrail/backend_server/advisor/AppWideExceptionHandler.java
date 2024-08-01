@@ -58,4 +58,11 @@ public class AppWideExceptionHandler {
         return new ResponseEntity<>(new StandardResponse(409,"Error",e.getMessage()), HttpStatus.CONFLICT);
     }
 
+    @ExceptionHandler(BadRequestException.class)
+    public ResponseEntity<StandardResponse> handelBadRequestException(ConflictException e) {
+        return new ResponseEntity<>(new StandardResponse(400,"Error",e.getMessage()), HttpStatus.BAD_REQUEST);
+    }
+
+
+
 }

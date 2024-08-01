@@ -3,6 +3,7 @@ package com.ceylontrail.backend_server.service.impl;
 import com.ceylontrail.backend_server.entity.ImageEntity;
 import com.ceylontrail.backend_server.entity.PostEntity;
 import com.ceylontrail.backend_server.exception.NotFoundException;
+import com.ceylontrail.backend_server.exception.BadRequestException;
 import com.ceylontrail.backend_server.repo.ImageRepo;
 import com.ceylontrail.backend_server.service.ImageService;
 
@@ -58,7 +59,7 @@ public class ImageServiceIMPL implements ImageService {
         try {
             Files.copy(file.getInputStream(), filepath);
         } catch (IOException e) {
-            throw new RuntimeException("Failed to store image", e);
+            throw new BadRequestException("Image upload fail");
         }
         ImageEntity image = new ImageEntity();
         image.setFilename(filename);
@@ -73,7 +74,7 @@ public class ImageServiceIMPL implements ImageService {
             try {
                 Files.delete(filepath);
             } catch (IOException e) {
-                throw new RuntimeException("Failed to remove image", e);
+                throw new BadRequestException("Image deletion fail");
             }
         if (imageRepo.existsByFilename(filename)) {
             imageRepo.delete(image);
@@ -107,7 +108,7 @@ public class ImageServiceIMPL implements ImageService {
         try {
             return new UrlResource(filepath.toUri());
         } catch (MalformedURLException e) {
-            throw new RuntimeException("Failed to load image", e);
+            throw new BadRequestException("Failed to load image");
         }
     }
 

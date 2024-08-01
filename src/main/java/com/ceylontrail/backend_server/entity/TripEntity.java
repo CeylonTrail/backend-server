@@ -36,6 +36,9 @@ public class  TripEntity {
     @Column(name = "description",length = 255)
     private String description;
 
+    @Column(name = "image_url",length = 255)
+    private String imageURL;
+
     @CreatedDate
     @Column(name = "created_at",columnDefinition = "TIMESTAMP")
     private LocalDate createdAt;

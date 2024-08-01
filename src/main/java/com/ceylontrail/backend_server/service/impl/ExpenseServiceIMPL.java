@@ -37,7 +37,6 @@ public class ExpenseServiceIMPL implements ExpenseService {
         Optional<TripEntity> trip = tripRepo.findById(createExpenseDTO.getTripId());
 
         if (traveller.isPresent() && trip.isPresent()){
-            if (trip.get().getTraveller().getTravellerId() == traveller.get().getTravellerId()) {
                 ExpenseEntity expense = new ExpenseEntity();
                 expense.setCategory(createExpenseDTO.getCategory());
                 expense.setAmount(createExpenseDTO.getAmount());
@@ -49,10 +48,8 @@ public class ExpenseServiceIMPL implements ExpenseService {
                 expenseRepo.save(expense);
 
                 return new StandardResponse(200, "Expense saved", createExpenseDTO);
-            } else {
-                return new StandardResponse(403, "Trip does not belong to the traveler", createExpenseDTO);
             }
-        } else{
+         else{
             if (!traveller.isPresent()) {
                 return new StandardResponse(404, "Traveler not found", createExpenseDTO);
             } else {

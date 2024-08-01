@@ -43,10 +43,6 @@ public class  TripEntity {
     @OneToMany(mappedBy="trip")
     private Set<ExpenseEntity> expenseSet;
 
-    @ManyToOne
-    @JoinColumn(name = "traveller_id", nullable = false)
-    private TravellerEntity traveller;
-
 
     public TripEntity(String destination, int dayCount, String description, LocalDate createdAt, LocalDate updateAt) {
         this.destination = destination;

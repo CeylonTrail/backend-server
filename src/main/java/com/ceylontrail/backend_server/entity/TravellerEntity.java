@@ -33,7 +33,5 @@ public class TravellerEntity {
     @OneToMany(mappedBy = "traveller", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ExpenseEntity> expenses = new ArrayList<>();
 
-    @OneToMany(mappedBy = "traveller", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<TripEntity> trips = new ArrayList<>();
 
 }

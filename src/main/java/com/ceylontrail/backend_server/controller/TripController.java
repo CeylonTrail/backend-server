@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.*;
 
 @CrossOrigin
 @RestController
-@RequestMapping("api/v1/auth/traveller")
+@RequestMapping("api/v1/traveller")
 public class TripController {
     @Autowired
     private TripService tripService;
@@ -28,5 +28,11 @@ public class TripController {
         return tripService.getTrip(tripId);
 
     }
+
+    @DeleteMapping("/delete-trip/{trip_id}")
+    public StandardResponse deleteTrip(@PathVariable(value = "trip_id") int tripId){
+        return tripService.deleteTrip(tripId);
+    }
+
 
 }

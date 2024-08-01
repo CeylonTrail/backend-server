@@ -122,8 +122,18 @@ public class TripServiceIMPL implements TripService {
             eventDTOS = mapper.eventListToDtoList(eventList);
 
         }
-        return new StandardResponse(200, "success", eventDTOS);
-
+        return new StandardResponse(200, "retrieve success", eventDTOS);
 
     }
+
+    @Override
+    public StandardResponse deleteTrip(int tripId) {
+        if(tripRepo.existsById(tripId)){
+            tripRepo.deleteById(tripId);
+            return new StandardResponse(200,"Success","Trip deleted successfully");
+        }else{
+            return new StandardResponse(404,"Success","Trip not found");
+        }
+    }
+    
 }

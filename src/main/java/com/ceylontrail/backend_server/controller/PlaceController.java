@@ -8,7 +8,7 @@ import java.util.Map;
 
 @CrossOrigin
 @RestController
-@RequestMapping("api/v1/auth/traveller")
+@RequestMapping("api/v1/traveller")
 public class PlaceController {
     @Autowired
     private PlacesService googlePlacesService;

@@ -9,4 +9,5 @@ public interface EventRepo extends JpaRepository<EventEntity,Integer> {
 
 
     List<EventEntity> findAllByTrip_TripId(int tripId);
+
 }

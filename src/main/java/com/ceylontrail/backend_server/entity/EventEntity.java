@@ -3,6 +3,9 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
 
@@ -12,6 +15,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Data
+@EntityListeners(AuditingEntityListener.class)
 public class EventEntity {
     @Id
     @Column(name = "event_id",length = 45)
@@ -32,9 +36,11 @@ public class EventEntity {
     @Column(name = "day_num",nullable = false)
     private int dayNum;
 
+    @CreatedDate
     @Column(name = "created_at",columnDefinition = "TIMESTAMP")
     private LocalDateTime createdAt;
 
+    @LastModifiedDate
     @Column(name = "update_at",columnDefinition = "TIMESTAMP")
     private LocalDateTime updateAt;
 

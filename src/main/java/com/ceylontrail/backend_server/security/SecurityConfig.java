@@ -35,6 +35,7 @@ public class SecurityConfig {
                         authorizeRequests
                                 .requestMatchers("/api/v1/auth/**").permitAll()
                                 .requestMatchers("/api/v1/auth/admin/**").hasRole("ADMIN")
+                                .requestMatchers("/api/v1/traveller/**").hasRole("TRAVELLER")
                                 .anyRequest().authenticated()
                 )
                 //.formLogin(AbstractAuthenticationFilterConfigurer::permitAll)

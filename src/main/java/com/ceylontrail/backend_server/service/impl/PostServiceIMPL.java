@@ -140,9 +140,7 @@ public class PostServiceIMPL implements PostService {
             post.setImages(imageService.UploadPostImages(post, postDTO.getImages()));
             postRepo.save(post);
         }
-        Map<String, Long> postMap = new HashMap<>();
-        postMap.put("postId", post.getPostId());
-        return new StandardResponse(200, "Post created successfully", postMap);
+        return new StandardResponse(200, "Post created successfully", null);
     }
 
     @Override

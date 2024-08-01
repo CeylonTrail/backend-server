@@ -110,7 +110,7 @@ public class AuthServiceIMPL implements AuthService {
                 char randomChar = CHARACTERS.charAt(random.nextInt(CHARACTERS.length()));
                 otp.append(randomChar);
             }
-            if (userRepo.existsByForgetPasswordOtp(otp.toString()))
+            if (!userRepo.existsByForgetPasswordOtp(otp.toString()))
                 return otp.toString();
         }
     }

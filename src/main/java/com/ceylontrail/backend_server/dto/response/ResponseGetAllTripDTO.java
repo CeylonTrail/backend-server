@@ -13,6 +13,7 @@ public class ResponseGetAllTripDTO {
     private String destination;
     private int dayCount;
     private String description;
+    private String imageURL;
     private LocalDate createdAt;
     private LocalDate updateAt;
 }

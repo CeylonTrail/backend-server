@@ -50,6 +50,16 @@ public class  TripEntity {
     @OneToMany(mappedBy="trip",cascade = CascadeType.ALL, orphanRemoval = true)
     private List<EventEntity> eventSet;
 
+    public TripEntity(int tripId, String destination, int dayCount, String description, String imageURL, LocalDate createdAt, LocalDate updateAt) {
+        this.tripId = tripId;
+        this.destination = destination;
+        this.dayCount = dayCount;
+        this.description = description;
+        this.imageURL = imageURL;
+        this.createdAt = createdAt;
+        this.updateAt = updateAt;
+    }
+
     public TripEntity(String destination, int dayCount, String description, LocalDate createdAt, LocalDate updateAt) {
         this.destination = destination;
         this.dayCount = dayCount;

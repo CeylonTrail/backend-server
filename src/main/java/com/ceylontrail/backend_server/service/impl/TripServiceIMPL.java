@@ -4,12 +4,15 @@ import com.ceylontrail.backend_server.dto.EventDTO;
 import com.ceylontrail.backend_server.dto.response.ResponseGetAllTripDTO;
 import com.ceylontrail.backend_server.dto.requests.RequestTripSaveDTO;
 import com.ceylontrail.backend_server.entity.EventEntity;
+import com.ceylontrail.backend_server.entity.ImageEntity;
 import com.ceylontrail.backend_server.entity.PlaceEntity;
 import com.ceylontrail.backend_server.entity.TripEntity;
 import com.ceylontrail.backend_server.repo.EventRepo;
+import com.ceylontrail.backend_server.repo.ImageRepo;
 import com.ceylontrail.backend_server.repo.PlaceRepo;
 import com.ceylontrail.backend_server.repo.TripRepo;
 import com.ceylontrail.backend_server.service.AuthService;
+import com.ceylontrail.backend_server.service.PlacesService;
 import com.ceylontrail.backend_server.service.TripService;
 import com.ceylontrail.backend_server.util.StandardResponse;
 import com.ceylontrail.backend_server.util.mapper.Mapper;
@@ -34,12 +37,17 @@ public class TripServiceIMPL implements TripService {
     private PlaceRepo placeRepo;
     @Autowired
     private AuthService authService;
+    @Autowired
+    private ImageRepo imageRepo;
+    @Autowired
+    private PlacesService placesService;
 
 
 
     @Override
     public StandardResponse saveTrip(RequestTripSaveDTO requestTripSaveDTO) {
         int userId = authService.getAuthUserId();
+
 
         if(!requestTripSaveDTO.getEventSet().isEmpty()) {
             TripEntity trip = new TripEntity(
@@ -50,6 +58,21 @@ public class TripServiceIMPL implements TripService {
                     requestTripSaveDTO.getUpdateAt()
             );
             trip.setUserId(userId);
+
+            if(imageRepo.existsByFilename(trip.getDestination().toLowerCase()+".jpg")){
+                ImageEntity image = imageRepo.findByFilename(trip.getDestination().toLowerCase()+".jpg");
+                System.out.println("image "+ image);
+                String imgUrl = image.getUrl();
+                System.out.println("Image in the db");
+                trip.setImageURL(imgUrl);
+            }else{
+                placesService.searchPlaceByNameFromAPI(requestTripSaveDTO.getDestination());
+                ImageEntity image = imageRepo.findByFilename(requestTripSaveDTO.getDestination().toLowerCase()+".jpg");
+                String imgUrl = image.getUrl();
+                trip.setImageURL(imgUrl);
+            }
+
+
             tripRepo.save(trip);
 
             if(tripRepo.existsById(trip.getTripId())){
@@ -100,8 +123,12 @@ public class TripServiceIMPL implements TripService {
                         tripEntity.getDestination(),
                         tripEntity.getDayCount(),
                         tripEntity.getDescription(),
+                        tripEntity.getImageURL(),
                         tripEntity.getCreatedAt(),
                         tripEntity.getUpdateAt()
+
+
+
                 );
                 getAllTripDTOS.add(allTripDTO);
 

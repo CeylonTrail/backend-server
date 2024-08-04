@@ -1,6 +1,9 @@
 package com.ceylontrail.backend_server.service.impl;
 import com.ceylontrail.backend_server.config.ByteArrayMultipartFile;
+import com.ceylontrail.backend_server.entity.ImageEntity;
 import com.ceylontrail.backend_server.entity.PlaceEntity;
+import com.ceylontrail.backend_server.exception.BadRequestException;
+import com.ceylontrail.backend_server.repo.ImageRepo;
 import com.ceylontrail.backend_server.repo.PlaceRepo;
 import com.ceylontrail.backend_server.service.PlacesService;
 import com.ceylontrail.backend_server.util.FileUploadUtil;
@@ -36,6 +39,12 @@ public class PlacesServiceIMPL implements PlacesService {
     @Autowired
     private FileUploadUtil fileUploadUtil;
 
+    @Value("${server.url}")
+    private String serverUrl;
+
+    @Autowired
+    private ImageRepo imageRepo;
+
     @Override
     public String getCoordinates(String location) {
         String url = String.format("https://maps.googleapis.com/maps/api/geocode/json?address=%s&key=%s", location, apiKey);
@@ -56,14 +65,16 @@ public class PlacesServiceIMPL implements PlacesService {
         }
         return null;
     }
+
     @Override
     public StandardResponse getPlaces(String location, int radius, int count) {
         String coordinates = getCoordinates(location);
         if (coordinates == null) {
-            throw new IllegalArgumentException("Unable to get coordinates for location: " + location);
+            throw new BadRequestException("Unable to get coordinates for location: " + location);
         }
         String url = String.format("%s?location=%s&radius=%d&type=tourist_attraction&key=%s", apiUrl, coordinates, radius, apiKey);
         int resultsCount = 0;
+
         List<PlaceEntity> allPlaces = new ArrayList<>();
 
         PlaceEntity placeEntity = null;
@@ -95,6 +106,7 @@ public class PlacesServiceIMPL implements PlacesService {
                                 photoUrl = String.format("https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photoreference=%s&key=%s", photoReference, apiKey);
                             }
                         }
+
                         placeEntity = new PlaceEntity(
                                 (String) placeData.get("place_id"),
                                 (String) placeData.get("name"),
@@ -179,7 +191,7 @@ public class PlacesServiceIMPL implements PlacesService {
         return ("No description found");
     }
 
-    public String searchPlaceByNameFromAPI(String placeName) {
+    public void searchPlaceByNameFromAPI(String placeName) {
         String url = String.format(
                 "https://maps.googleapis.com/maps/api/place/findplacefromtext/json?input=%s&inputtype=textquery&fields=place_id,name,formatted_address&key=%s",
                 placeName, apiKey
@@ -195,9 +207,10 @@ public class PlacesServiceIMPL implements PlacesService {
                 String placeId = (String) candidate.get("place_id");
                 String photoUrl = getPlacePhotoUrlFromAPI(placeId);
                 imageUrl = savePlacePhoto(photoUrl, placeName.toLowerCase(Locale.ROOT));
+                System.out.println("imageUrl "+imageUrl);
             }
         }
-        return imageUrl;
+
 
     }
 
@@ -231,6 +244,7 @@ public class PlacesServiceIMPL implements PlacesService {
 
     private String savePlacePhoto(String photoUrl, String place) {
         String savedFileName = null;
+
         try {
             ResponseEntity<byte[]> response = restTemplate.getForEntity(photoUrl, byte[].class);
             if (response.getStatusCode() == HttpStatus.OK) {
@@ -239,6 +253,13 @@ public class PlacesServiceIMPL implements PlacesService {
                     String fileName = place.replaceAll("\\s+", "_") + ".jpg";
                     MultipartFile multipartFile = new ByteArrayMultipartFile("file", fileName, "image/jpeg", imageBytes);
                     savedFileName = fileUploadUtil.saveFile(multipartFile);
+                    if(!imageRepo.existsByFilename(fileName.toLowerCase())){
+                        ImageEntity image = new ImageEntity();
+                        image.setFilename(fileName.toLowerCase());
+                        image.setUrl(serverUrl + "/api/v1/image/" + fileName);
+                        imageRepo.save(image);
+                    }
+
                 }else{
                     return "Image Not Found";
                 }

@@ -9,5 +9,6 @@ import java.util.Optional;
 public interface PlaceRepo extends JpaRepository<PlaceEntity,String> {
 
     boolean existsByPlaceId(String placeId);
+
     PlaceEntity findByPlaceId(String placeId);
 }

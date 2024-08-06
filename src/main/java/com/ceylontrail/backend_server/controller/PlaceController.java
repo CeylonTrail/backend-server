@@ -3,6 +3,7 @@ import com.ceylontrail.backend_server.service.PlacesService;
 import com.ceylontrail.backend_server.util.StandardResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import jakarta.validation.constraints.Max;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -41,10 +42,14 @@ public class PlaceController {
     }
 
     @GetMapping(
-            path = "/get-all-places"
+            path = {"/get-all-places"},
+            params ={"page"}
     )
-    public StandardResponse getPlaceByName(){
-         return googlePlacesService.getAllPlaces();
+    public StandardResponse getPlaceByName(
+            @RequestParam(value = "page") int page,
+            @RequestParam(value = "size") @Max(50) int size
+    ){
+         return googlePlacesService.getAllPlaces(page,size);
     }
 
 }

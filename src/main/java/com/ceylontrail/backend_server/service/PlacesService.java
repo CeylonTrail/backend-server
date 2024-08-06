@@ -11,5 +11,5 @@ public interface PlacesService {
 
     void searchPlaceByNameFromAPI(String placeName);
 
-    StandardResponse getAllPlaces();
+    StandardResponse getAllPlaces(int page, int size);
 }

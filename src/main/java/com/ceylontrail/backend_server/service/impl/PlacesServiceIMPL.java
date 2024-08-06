@@ -1,6 +1,7 @@
 package com.ceylontrail.backend_server.service.impl;
 import com.ceylontrail.backend_server.config.ByteArrayMultipartFile;
 import com.ceylontrail.backend_server.dto.PlaceDTO;
+import com.ceylontrail.backend_server.dto.paginated.PaginatedResponsePlaceDTO;
 import com.ceylontrail.backend_server.entity.ImageEntity;
 import com.ceylontrail.backend_server.entity.PlaceEntity;
 import com.ceylontrail.backend_server.exception.BadRequestException;
@@ -11,6 +12,8 @@ import com.ceylontrail.backend_server.util.FileUploadUtil;
 import com.ceylontrail.backend_server.util.StandardResponse;
 import com.ceylontrail.backend_server.util.mapper.Mapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.beans.factory.annotation.Value;
@@ -220,6 +223,7 @@ public class PlacesServiceIMPL implements PlacesService {
 
     }
 
+
     public String getPlacePhotoUrlFromAPI(String placeId) {
         String url = String.format("https://maps.googleapis.com/maps/api/place/details/json?place_id=%s&key=%s", placeId, apiKey);
         ResponseEntity<Map> response = restTemplate.getForEntity(url, Map.class);
@@ -279,12 +283,24 @@ public class PlacesServiceIMPL implements PlacesService {
 
 
     @Override
-    public StandardResponse getAllPlaces() {
-        List<PlaceEntity> places = placeRepo.findAll();
-        List<PlaceDTO> allPlaces = mapper.placesEntityListToDtoList(places);
-        return new StandardResponse(200,"All-Places",allPlaces);
-
+    public StandardResponse getAllPlaces(int page, int size) {
+        Page<PlaceEntity> placePage = placeRepo.findAll(PageRequest.of(page,size));
+        List<PlaceDTO> placeDTOS = mapper.pageToList(placePage);
+        long count = placeRepo.count();
+        PaginatedResponsePlaceDTO paginatedResponsePlaceDTO =  new PaginatedResponsePlaceDTO(
+                placeDTOS,
+                count
+        );
+        return new StandardResponse(200,"All Places",paginatedResponsePlaceDTO);
     }
+
+//    @Override
+//    public StandardResponse getAllPlaces() {
+//        List<PlaceEntity> places = placeRepo.findAll();
+//        List<PlaceDTO> allPlaces = mapper.placesEntityListToDtoList(places);
+//        return new StandardResponse(200,"All-Places",allPlaces);
+//
+//    }
 
 
 

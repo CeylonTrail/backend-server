@@ -6,8 +6,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Map;
-
 @CrossOrigin
 @RestController
 @RequestMapping("api/v1/traveller")
@@ -41,13 +39,12 @@ public class PlaceController {
        return googlePlacesService.getPlaces(location,radius,count);
 
     }
-//
-//    @GetMapping(
-//            path = "/get-place-by-name",
-//            params = {"placename"}
-//    )
-//    public String getPlaceByName(@RequestParam(value = "placename") String placeName){
-//         return googlePlacesService.searchPlaceByNameFromAPI(placeName);
-//    }
+
+    @GetMapping(
+            path = "/get-all-places"
+    )
+    public StandardResponse getPlaceByName(){
+         return googlePlacesService.getAllPlaces();
+    }
 
 }

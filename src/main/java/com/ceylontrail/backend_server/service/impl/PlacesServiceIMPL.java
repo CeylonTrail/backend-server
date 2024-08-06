@@ -1,5 +1,6 @@
 package com.ceylontrail.backend_server.service.impl;
 import com.ceylontrail.backend_server.config.ByteArrayMultipartFile;
+import com.ceylontrail.backend_server.dto.PlaceDTO;
 import com.ceylontrail.backend_server.entity.ImageEntity;
 import com.ceylontrail.backend_server.entity.PlaceEntity;
 import com.ceylontrail.backend_server.exception.BadRequestException;
@@ -8,6 +9,7 @@ import com.ceylontrail.backend_server.repo.PlaceRepo;
 import com.ceylontrail.backend_server.service.PlacesService;
 import com.ceylontrail.backend_server.util.FileUploadUtil;
 import com.ceylontrail.backend_server.util.StandardResponse;
+import com.ceylontrail.backend_server.util.mapper.Mapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
@@ -44,6 +46,10 @@ public class PlacesServiceIMPL implements PlacesService {
 
     @Autowired
     private ImageRepo imageRepo;
+
+    @Autowired
+    private Mapper mapper;
+
 
     @Override
     public String getCoordinates(String location) {
@@ -270,6 +276,16 @@ public class PlacesServiceIMPL implements PlacesService {
         }
         return savedFileName;
     }
+
+
+    @Override
+    public StandardResponse getAllPlaces() {
+        List<PlaceEntity> places = placeRepo.findAll();
+        List<PlaceDTO> allPlaces = mapper.placesEntityListToDtoList(places);
+        return new StandardResponse(200,"All-Places",allPlaces);
+
+    }
+
 
 
 

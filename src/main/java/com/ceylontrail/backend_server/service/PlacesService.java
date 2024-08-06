@@ -10,4 +10,6 @@ public interface PlacesService {
     StandardResponse getPlaces(String location, int radius, int count);
 
     void searchPlaceByNameFromAPI(String placeName);
+
+    StandardResponse getAllPlaces();
 }

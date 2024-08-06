@@ -3,10 +3,9 @@ import com.ceylontrail.backend_server.service.PlacesService;
 import com.ceylontrail.backend_server.util.StandardResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import jakarta.validation.constraints.Max;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.Map;
 
 @CrossOrigin
 @RestController
@@ -41,13 +40,16 @@ public class PlaceController {
        return googlePlacesService.getPlaces(location,radius,count);
 
     }
-//
-//    @GetMapping(
-//            path = "/get-place-by-name",
-//            params = {"placename"}
-//    )
-//    public String getPlaceByName(@RequestParam(value = "placename") String placeName){
-//         return googlePlacesService.searchPlaceByNameFromAPI(placeName);
-//    }
+
+    @GetMapping(
+            path = {"/get-all-places"},
+            params ={"page"}
+    )
+    public StandardResponse getPlaceByName(
+            @RequestParam(value = "page") int page,
+            @RequestParam(value = "size") @Max(50) int size
+    ){
+         return googlePlacesService.getAllPlaces(page,size);
+    }
 
 }

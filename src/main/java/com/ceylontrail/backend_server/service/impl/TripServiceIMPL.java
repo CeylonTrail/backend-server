@@ -126,9 +126,7 @@ public class TripServiceIMPL implements TripService {
                         tripEntity.getImageURL(),
                         tripEntity.getCreatedAt(),
                         tripEntity.getUpdateAt()
-
-
-
+                        
                 );
                 getAllTripDTOS.add(allTripDTO);
 

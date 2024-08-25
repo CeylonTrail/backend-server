@@ -22,6 +22,6 @@ public class MarketPlaceDTO {
     private String ownerFirstName;
     private String ownerLastName;
     private String verificationDoc;
-    private List<SocialMediaLinkDTO> socialMediaLinks;
+    private List<SocialMediaLinksDTO> socialMediaLinks;
     private List<OpeningHoursDTO> openingHours;
 }

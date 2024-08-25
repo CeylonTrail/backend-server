@@ -7,7 +7,7 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class SocialMediaLinkDTO {
-    private String socialMedia;
-    private String url;
+public class SocialMediaLinksDTO {
+    private String name;
+    private String link;
 }

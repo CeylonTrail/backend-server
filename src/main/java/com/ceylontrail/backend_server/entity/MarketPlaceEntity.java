@@ -6,7 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
-import java.util.Map;
+import java.util.List;
 
 @Entity
 @Table(name = "marketplace")
@@ -17,8 +17,8 @@ import java.util.Map;
 public class MarketPlaceEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "markertplace_id", nullable = false, updatable = false)
-    private Long markerPlaceID;
+    @Column(name = "marketplace_id", nullable = false, updatable = false)
+    private Long marketPlaceID;
 
     @Column(name = "profile_image")
     private String profileImage;
@@ -55,25 +55,28 @@ public class MarketPlaceEntity {
 
     @ElementCollection
     @CollectionTable(name = "social_media_links", joinColumns = @JoinColumn(name = "marketplace_id"))
-    @MapKeyColumn(name = "social_media")
-    @Column(name = "url")
-    private Map<String, String> socialMediaLinks;
+    private List<SocialMediaLinks> socialMediaLinks;
 
     @ElementCollection
     @CollectionTable(name = "opening_hours", joinColumns = @JoinColumn(name = "marketplace_id"))
-    @MapKeyColumn(name = "day")
-    private Map<String, TimeRange> openingHours;
+    private List<OpeningHours> openingHours;
 
-    // Define the TimeRange
-    @Embeddable
-    @Data
-    @NoArgsConstructor
-    @AllArgsConstructor
-    public static class TimeRange {
-        @Column(name = "start_time")
-        private String startTime;
-
-        @Column(name = "end_time")
-        private String endTime;
+    public MarketPlaceEntity(String profileImage, String coverImage, String shopName, String description, String serviceType, String email, String contactNumber, String address, String ownerFirstName, String ownerLastName, String verificationDoc, List<SocialMediaLinks> socialMediaLinks, List<OpeningHours> openingHours) {
+        this.profileImage = profileImage;
+        this.coverImage = coverImage;
+        this.shopName = shopName;
+        this.description = description;
+        this.serviceType = serviceType;
+        this.email = email;
+        this.contactNumber = contactNumber;
+        this.address = address;
+        this.ownerFirstName = ownerFirstName;
+        this.ownerLastName = ownerLastName;
+        this.verificationDoc = verificationDoc;
+        this.socialMediaLinks = socialMediaLinks;
+        this.openingHours = openingHours;
     }
 }
+
+
+

@@ -78,6 +78,7 @@ public class PlacesServiceIMPL implements PlacesService {
     @Override
     public StandardResponse getPlaces(String location, int radius, int count) {
         String coordinates = getCoordinates(location);
+        System.out.println(coordinates);
         if (coordinates == null) {
             throw new BadRequestException("Unable to get coordinates for location: " + location);
         }
@@ -90,8 +91,10 @@ public class PlacesServiceIMPL implements PlacesService {
         while (url != null && resultsCount < count) {
             Map<String, Object> response = restTemplate.getForObject(url, Map.class);
 
+
             if (response != null && response.containsKey("results")) {
                 List<Map<String, Object>> places = (List<Map<String, Object>>) response.get("results");
+
                 for (Map<String, Object> placeData : places) {
                     List<String> types = (List<String>) placeData.get("types");
                     if (
@@ -121,7 +124,8 @@ public class PlacesServiceIMPL implements PlacesService {
                                 (String) placeData.get("name"),
                                 (double) locationData.get("lat"),
                                 (double) locationData.get("lng"),
-                                generateDescription((String) placeData.get("name"), (String) placeData.get("vicinity")),
+//                                generateDescription((String) placeData.get("name"), (String) placeData.get("vicinity"))
+                                "no description",
                                 photoUrl,
                                 rating
 
@@ -161,6 +165,7 @@ public class PlacesServiceIMPL implements PlacesService {
     }
 
     private String generateDescription(String name, String address) {
+
         String prompt = String.format(
                 "Give a 50 word description for following tourist attraction place in Sri Lanka for a travel app. Return only the description.The place name is: %s. located in: %s",
                 name,address);

@@ -2,6 +2,7 @@ package com.ceylontrail.backend_server.service.impl;
 
 import com.ceylontrail.backend_server.dto.comment.GetCommentDTO;
 import com.ceylontrail.backend_server.dto.post.*;
+import com.ceylontrail.backend_server.dto.trip.CommunityTripDTO;
 import com.ceylontrail.backend_server.dto.user.CommunityUserDTO;
 import com.ceylontrail.backend_server.entity.ImageEntity;
 import com.ceylontrail.backend_server.entity.PostEntity;
@@ -57,44 +58,36 @@ public class PostServiceIMPL implements PostService {
         return post;
     }
 
-    @Override
-    public GetPostDTO postPreProcessToSend(PostEntity post) {
-        UserEntity user = post.getUser();
-        List<CommunityUserDTO> likes = post.getLikes().stream()
-                .map(likedUser -> new CommunityUserDTO(likedUser.getUserId(), likedUser.getUsername(), likedUser.getProfilePictureUrl()))
-                .collect(Collectors.toList());
-        List<GetCommentDTO> comments = post.getComments().stream()
-                .map(comment -> {
-                    UserEntity commentUser = comment.getUser();
-                    return new GetCommentDTO(
-                            comment.getCommentId(),
-                            new CommunityUserDTO(commentUser.getUserId(), commentUser.getUsername(), commentUser.getProfilePictureUrl()),
-                            comment.getContent(),
-                            comment.getCreatedAt(),
-                            comment.getUpdatedAt()
-                    );
-                })
-                .collect(Collectors.toList());
-        List<String> images = post.getImages().stream()
-                .map(ImageEntity::getUrl).
-                collect(Collectors.toList());
-        return new GetPostDTO(
+    private GetPostFeedDTO postPreProcessForSendToFeed(PostEntity post) {
+        return new GetPostFeedDTO(
                 post.getPostId(),
-                new CommunityUserDTO(user.getUserId(), user.getUsername(), user.getProfilePictureUrl()),
+                new CommunityUserDTO(
+                        post.getUser().getUserId(),
+                        post.getUser().getUsername(),
+                        post.getUser().getProfilePictureUrl()
+                ),
                 post.getContent(),
+                (post.getTrip() != null) ? new CommunityTripDTO(
+                        post.getTrip().getTripId(),
+                        post.getTrip().getDestination(),
+                        post.getTrip().getDayCount()
+                ) : null,
                 post.getPrivacy(),
-                likes,
-                comments,
-                images,
+                post.getLikes().size(),
+                post.getComments().size(),
+                (post.getImages() != null && !post.getImages().isEmpty()) ?
+                        post.getImages().stream().map(ImageEntity::getUrl).toList() :
+                        List.of(),
                 post.getCreatedAt(),
                 post.getUpdatedAt()
         );
     }
 
+
     @Override
     public StandardResponse getCommunityPublicPosts() {
-        List<GetPostDTO> postsMap = postRepo.findPostEntitiesByPrivacyInOrderByUpdatedAtDesc(List.of(PostPrivacyEnum.PUBLIC)).stream()
-                .map(this::postPreProcessToSend)
+        List<GetPostFeedDTO> postsMap = postRepo.findPostEntitiesByPrivacyInOrderByUpdatedAtDesc(List.of(PostPrivacyEnum.PUBLIC)).stream()
+                .map(this::postPreProcessForSendToFeed)
                 .collect(Collectors.toList());
         return new StandardResponse(200, "Posts fetched successfully", postsMap);
     }
@@ -102,16 +95,16 @@ public class PostServiceIMPL implements PostService {
     @Override
     public StandardResponse getCommunityPosts() {
         // Need to randomized post order
-        List<GetPostDTO> postsMap = postRepo.findAll().stream()
-                .map(this::postPreProcessToSend)
+        List<GetPostFeedDTO> postsMap = postRepo.findAll().stream()
+                .map(this::postPreProcessForSendToFeed)
                 .collect(Collectors.toList());
         return new StandardResponse(200, "Posts fetched successfully", postsMap);
     }
 
     @Override
     public StandardResponse getUserPosts() {
-        List<GetPostDTO> postsMap = postRepo.findPostEntitiesByUser_UserIdOrderByCreatedAtDesc(authService.getAuthUserId()).stream()
-                .map(this::postPreProcessToSend)
+        List<GetPostFeedDTO> postsMap = postRepo.findPostEntitiesByUser_UserIdOrderByCreatedAtDesc(authService.getAuthUserId()).stream()
+                .map(this::postPreProcessForSendToFeed)
                 .collect(Collectors.toList());
         return new StandardResponse(200, "Posts fetched successfully", postsMap);
     }
@@ -119,9 +112,57 @@ public class PostServiceIMPL implements PostService {
     @Override
     public StandardResponse getPostByPostId(Long postId) {
         PostEntity post = this.initialPostCheck(postId);
-        GetPostDTO postDTO = this.postPreProcessToSend(post);
+        GetPostDTO postDTO = new GetPostDTO();
+        postDTO.setPostId(post.getPostId());
+        postDTO.setUser(new CommunityUserDTO(
+                post.getUser().getUserId(),
+                post.getUser().getUsername(),
+                post.getUser().getProfilePictureUrl())
+        );
+        postDTO.setContent(post.getContent());
+        postDTO.setPrivacy(post.getPrivacy());
+        postDTO.setCreatedAt(post.getCreatedAt());
+        postDTO.setUpdatedAt(post.getUpdatedAt());
+        if (post.getTrip() != null) {
+            postDTO.setTrip(new CommunityTripDTO(
+                    post.getTrip().getTripId(),
+                    post.getTrip().getDestination(),
+                    post.getTrip().getDayCount())
+            );
+        } else {
+            postDTO.setTrip(null);
+        }
+        postDTO.setLikes(post.getLikes().stream()
+                .map(likedUser -> new CommunityUserDTO(
+                        likedUser.getUserId(),
+                        likedUser.getUsername(),
+                        likedUser.getProfilePictureUrl())
+                ).toList()
+        );
+        postDTO.setComments(post.getComments().stream()
+                .map(comment -> {
+                    UserEntity commentUser = comment.getUser();
+                    return new GetCommentDTO(
+                            comment.getCommentId(),
+                            new CommunityUserDTO(
+                                    commentUser.getUserId(),
+                                    commentUser.getUsername(),
+                                    commentUser.getProfilePictureUrl()
+                            ),
+                            comment.getContent(),
+                            comment.getCreatedAt(),
+                            comment.getUpdatedAt()
+                    );
+                }).toList()
+        );
+        postDTO.setImages(post.getImages().stream()
+                .map(ImageEntity::getUrl)
+                .toList()
+        );
         return new StandardResponse(200, "Post fetched successfully", postDTO);
     }
+
+
 
     @Override
     @Transactional

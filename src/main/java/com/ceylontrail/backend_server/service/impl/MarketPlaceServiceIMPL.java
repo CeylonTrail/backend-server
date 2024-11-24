@@ -4,6 +4,7 @@ import com.ceylontrail.backend_server.entity.MarketPlaceEntity;
 import com.ceylontrail.backend_server.entity.OpeningHours;
 import com.ceylontrail.backend_server.entity.SocialMediaLinks;
 import com.ceylontrail.backend_server.repo.MarketPlaceRepo;
+import com.ceylontrail.backend_server.service.ImageService;
 import com.ceylontrail.backend_server.service.MarkerPlaceService;
 import com.ceylontrail.backend_server.util.StandardResponse;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,6 +17,9 @@ import java.util.stream.Collectors;
 public class MarketPlaceServiceIMPL implements MarkerPlaceService {
     @Autowired
     private MarketPlaceRepo marketPlaceRepo;
+
+    @Autowired
+    private ImageService imageService;
 
     @Override
     public StandardResponse setupMarket(MarketPlaceDTO marketPlaceDTO) {
@@ -44,6 +48,11 @@ public class MarketPlaceServiceIMPL implements MarkerPlaceService {
                 socialMediaLinks,
                 openingHours
         );
+
+        if(marketPlaceDTO.getProfileImage()!=null){
+            //imageService.uploadImage(marketPlaceDTO.getProfileImage());
+
+        }
         marketPlaceRepo.save(marketPlaceEntity);
 
 

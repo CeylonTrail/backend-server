@@ -10,8 +10,6 @@ public interface PostService {
 
     PostEntity initialPostAndUserCheck(Long postId);
 
-    GetPostDTO postPreProcessToSend(PostEntity post);
-
     StandardResponse getUserPosts();
 
     StandardResponse getCommunityPosts();

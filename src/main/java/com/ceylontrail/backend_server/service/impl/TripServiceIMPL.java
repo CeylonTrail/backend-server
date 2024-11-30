@@ -3,14 +3,8 @@ import com.ceylontrail.backend_server.controller.AuthController;
 import com.ceylontrail.backend_server.dto.EventDTO;
 import com.ceylontrail.backend_server.dto.response.ResponseGetAllTripDTO;
 import com.ceylontrail.backend_server.dto.requests.RequestTripSaveDTO;
-import com.ceylontrail.backend_server.entity.EventEntity;
-import com.ceylontrail.backend_server.entity.ImageEntity;
-import com.ceylontrail.backend_server.entity.PlaceEntity;
-import com.ceylontrail.backend_server.entity.TripEntity;
-import com.ceylontrail.backend_server.repo.EventRepo;
-import com.ceylontrail.backend_server.repo.ImageRepo;
-import com.ceylontrail.backend_server.repo.PlaceRepo;
-import com.ceylontrail.backend_server.repo.TripRepo;
+import com.ceylontrail.backend_server.entity.*;
+import com.ceylontrail.backend_server.repo.*;
 import com.ceylontrail.backend_server.service.AuthService;
 import com.ceylontrail.backend_server.service.PlacesService;
 import com.ceylontrail.backend_server.service.TripService;
@@ -21,6 +15,9 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 public class TripServiceIMPL implements TripService {
@@ -41,6 +38,8 @@ public class TripServiceIMPL implements TripService {
     private ImageRepo imageRepo;
     @Autowired
     private PlacesService placesService;
+    @Autowired
+    private SavedTripRepo savedTripRepo;
 
 
 
@@ -161,5 +160,49 @@ public class TripServiceIMPL implements TripService {
         }
     }
 
-    
+    @Override
+    public StandardResponse saveCreatedTrip(int tripId) {
+        int userId = authService.getAuthUserId();
+        SavedTripEntity savedTripEntity = new SavedTripEntity();
+        savedTripEntity.setTripId(tripId);
+        savedTripEntity.setUserId(userId);
+
+        savedTripRepo.save(savedTripEntity);
+        return new StandardResponse(200,"Success",null);
+    }
+
+    @Override
+    public StandardResponse getSavedTrips() {
+        int userId = authService.getAuthUserId();
+        List<SavedTripEntity> savedTripEntities = savedTripRepo.findAllByUserId(userId);
+        List<Integer> tripIds = savedTripEntities.stream()
+                .map(SavedTripEntity::getTripId)
+                .toList();
+        System.out.println("Trip IDs: " + tripIds);
+        List<ResponseGetAllTripDTO> getAllTripDTOS = new ArrayList<>();
+        for (Integer tripId : tripIds) {
+            Optional<TripEntity> tripEntityOptional = tripRepo.findById(tripId); // Assuming `findById` is available
+            if (tripEntityOptional.isPresent()) {
+                TripEntity tripEntity = tripEntityOptional.get();
+                ResponseGetAllTripDTO allTripDTO = new ResponseGetAllTripDTO(
+                        tripEntity.getTripId(),
+                        tripEntity.getDestination(),
+                        tripEntity.getDayCount(),
+                        tripEntity.getDescription(),
+                        tripEntity.getImageURL(),
+                        tripEntity.getCreatedAt(),
+                        tripEntity.getUpdateAt()
+                );
+                getAllTripDTOS.add(allTripDTO);
+            } else {
+                System.err.println("Trip not found for ID: " + tripId);
+            }
+        }
+
+        // Return the response with the DTO list
+        return new StandardResponse(200, "Saved trips retrieved successfully", getAllTripDTOS);
+    }
+
+
+
 }

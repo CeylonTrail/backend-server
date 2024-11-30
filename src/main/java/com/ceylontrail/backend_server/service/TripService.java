@@ -12,4 +12,7 @@ public interface TripService {
 
     StandardResponse deleteTrip(int tripId);
 
+    StandardResponse saveCreatedTrip(int tripId);
+
+    StandardResponse getSavedTrips();
 }

@@ -3,8 +3,6 @@ package com.ceylontrail.backend_server.service.impl;
 import com.ceylontrail.backend_server.dto.comment.AddCommentDTO;
 import com.ceylontrail.backend_server.dto.comment.EditCommentDTO;
 import com.ceylontrail.backend_server.entity.CommentEntity;
-import com.ceylontrail.backend_server.entity.PostEntity;
-import com.ceylontrail.backend_server.entity.UserEntity;
 import com.ceylontrail.backend_server.exception.NotFoundException;
 import com.ceylontrail.backend_server.exception.UnauthorizedException;
 import com.ceylontrail.backend_server.repo.CommentRepo;
@@ -20,29 +18,26 @@ import org.springframework.stereotype.Service;
 @AllArgsConstructor
 public class CommentServiceIMPL implements CommentService {
 
-    private final UserRepo userRepo;
-    private final CommentRepo commentRepo;
-
     private final AuthService authService;
     private final PostService postService;
+
+    private final UserRepo userRepo;
+    private final CommentRepo commentRepo;
 
     private CommentEntity initialCommentAndUserCheck(Long commentId) {
         CommentEntity comment = commentRepo.findByCommentId(commentId);
         if (comment == null)
             throw new NotFoundException("Comment does not exist");
-        UserEntity loggedUser = userRepo.findByUserId(authService.getAuthUserId());
-        if (loggedUser.getUserId() != comment.getUser().getUserId())
+        if (userRepo.findByUserId(authService.getAuthUserId()).getUserId() != comment.getUser().getUserId())
             throw new UnauthorizedException("Comment author is not logged in");
         return comment;
     }
 
     @Override
     public StandardResponse addComment(AddCommentDTO commentDTO) {
-        PostEntity post = postService.initialPostCheck(commentDTO.getPostId());
-        UserEntity user = userRepo.findByUserId(authService.getAuthUserId());
         CommentEntity comment = new CommentEntity();
-        comment.setPost(post);
-        comment.setUser(user);
+        comment.setPost(postService.initialPostCheck(commentDTO.getPostId()));
+        comment.setUser(userRepo.findByUserId(authService.getAuthUserId()));
         comment.setContent(commentDTO.getContent());
         commentRepo.save(comment);
         return new StandardResponse(200, "Comment added successfully", null);

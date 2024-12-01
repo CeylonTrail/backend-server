@@ -1,7 +1,10 @@
 package com.ceylontrail.backend_server.controller;
 
+import com.ceylontrail.backend_server.dto.post.AddCommentDTO;
+import com.ceylontrail.backend_server.dto.post.EditCommentDTO;
 import com.ceylontrail.backend_server.dto.post.AddPostDTO;
 import com.ceylontrail.backend_server.dto.post.EditPostDTO;
+import com.ceylontrail.backend_server.dto.post.ReportPostDTO;
 import com.ceylontrail.backend_server.service.PostService;
 import com.ceylontrail.backend_server.util.StandardResponse;
 import lombok.AllArgsConstructor;
@@ -53,5 +56,25 @@ public class PostController {
     @PutMapping(path = "/remove-like/{postId}")
     public StandardResponse removeLikePost(@PathVariable Long postId) {
         return postService.removeLike(postId);
+    }
+
+    @PostMapping("/comment")
+    public StandardResponse addComment(@RequestBody AddCommentDTO commentDTO) {
+        return postService.addComment(commentDTO);
+    }
+
+    @PutMapping("/comment/{commentId}")
+    public StandardResponse updateComment(@PathVariable Long commentId, @RequestBody EditCommentDTO commentDTO) {
+        return postService.updateComment(commentId, commentDTO);
+    }
+
+    @DeleteMapping("/comment/{commentId}")
+    public StandardResponse removeComment(@PathVariable Long commentId) {
+        return postService.removeComment(commentId);
+    }
+
+    @PostMapping("report/{postId}")
+    public StandardResponse reportPost(@PathVariable Long postId, @RequestBody ReportPostDTO postDTO) {
+        return postService.reportPost(postId, postDTO);
     }
 }

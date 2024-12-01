@@ -1,17 +1,20 @@
 package com.ceylontrail.backend_server.service.impl;
 
-import com.ceylontrail.backend_server.dto.comment.GetCommentDTO;
 import com.ceylontrail.backend_server.dto.post.*;
 import com.ceylontrail.backend_server.dto.trip.CommunityTripDTO;
 import com.ceylontrail.backend_server.dto.user.CommunityUserDTO;
+import com.ceylontrail.backend_server.entity.CommentEntity;
 import com.ceylontrail.backend_server.entity.ImageEntity;
 import com.ceylontrail.backend_server.entity.PostEntity;
+import com.ceylontrail.backend_server.entity.ReportEntity;
 import com.ceylontrail.backend_server.entity.UserEntity;
 import com.ceylontrail.backend_server.entity.enums.PostPrivacyEnum;
 import com.ceylontrail.backend_server.exception.AlreadyExistingException;
 import com.ceylontrail.backend_server.exception.NotFoundException;
 import com.ceylontrail.backend_server.exception.UnauthorizedException;
+import com.ceylontrail.backend_server.repo.CommentRepo;
 import com.ceylontrail.backend_server.repo.PostRepo;
+import com.ceylontrail.backend_server.repo.ReportRepo;
 import com.ceylontrail.backend_server.repo.UserRepo;
 import com.ceylontrail.backend_server.service.AuthService;
 import com.ceylontrail.backend_server.service.ImageService;
@@ -30,11 +33,13 @@ import java.util.stream.Collectors;
 public class PostServiceIMPL implements PostService {
 
     private final AuthService authService;
-    private final ImageService imageService;
     private final TripService tripService;
+    private final ImageService imageService;
 
     private final PostRepo postRepo;
     private final UserRepo userRepo;
+    private final ReportRepo reportRepo;
+    private final CommentRepo commentRepo;
 
     @Override
     public PostEntity initialPostCheck(Long postId) {
@@ -52,6 +57,15 @@ public class PostServiceIMPL implements PostService {
             throw new UnauthorizedException("Post author is not logged in");
         }
         return post;
+    }
+
+    private CommentEntity initialCommentAndUserCheck(Long commentId) {
+        CommentEntity comment = commentRepo.findByCommentId(commentId);
+        if (comment == null)
+            throw new NotFoundException("Comment does not exist");
+        if (userRepo.findByUserId(authService.getAuthUserId()).getUserId() != comment.getUser().getUserId())
+            throw new UnauthorizedException("Comment author is not logged in");
+        return comment;
     }
 
     private GetPostFeedDTO postPreProcessForSendToFeed(PostEntity post) {
@@ -221,6 +235,41 @@ public class PostServiceIMPL implements PostService {
         post.getLikes().remove(loggedUser);
         postRepo.save(post);
         return new StandardResponse(200, "Like removed successfully", null);
+    }
+
+    @Override
+    public StandardResponse addComment(AddCommentDTO commentDTO) {
+        CommentEntity comment = new CommentEntity();
+        comment.setPost(this.initialPostCheck(commentDTO.getPostId()));
+        comment.setUser(userRepo.findByUserId(authService.getAuthUserId()));
+        comment.setContent(commentDTO.getContent());
+        commentRepo.save(comment);
+        return new StandardResponse(200, "Comment added successfully", null);
+    }
+
+    @Override
+    public StandardResponse updateComment(Long commentId, EditCommentDTO commentDTO) {
+        CommentEntity comment = this.initialCommentAndUserCheck(commentId);
+        comment.setContent(commentDTO.getContent());
+        commentRepo.save(comment);
+        return new StandardResponse(200, "Comment updated successfully", null);
+    }
+
+    @Override
+    public StandardResponse removeComment(Long commentId) {
+        CommentEntity comment = this.initialCommentAndUserCheck(commentId);
+        commentRepo.delete(comment);
+        return new StandardResponse(200, "Comment deleted successfully", null);
+    }
+
+    @Override
+    public StandardResponse reportPost(Long postId, ReportPostDTO postDTO) {
+        ReportEntity report = new ReportEntity();
+        report.setPost(this.initialPostCheck(postId));
+        report.setUser(this.userRepo.findByUserId(this.authService.getAuthUserId()));
+        report.setReason(postDTO.getReason());
+        reportRepo.save(report);
+        return new StandardResponse(200, "Post reported successfully", null);
     }
 
 }

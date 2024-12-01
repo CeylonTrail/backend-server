@@ -1,4 +1,4 @@
-package com.ceylontrail.backend_server.dto.comment;
+package com.ceylontrail.backend_server.dto.post;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -7,9 +7,8 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class AddCommentDTO {
+public class EditCommentDTO {
 
-    private Long postId;
     private String content;
 
 }

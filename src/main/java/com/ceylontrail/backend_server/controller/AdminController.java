@@ -1,5 +1,7 @@
 package com.ceylontrail.backend_server.controller;
 
+import com.ceylontrail.backend_server.dto.subscription.AddSubscriptionDTO;
+import com.ceylontrail.backend_server.dto.subscription.EditSubscriptionDTO;
 import com.ceylontrail.backend_server.service.AdminService;
 import com.ceylontrail.backend_server.util.StandardResponse;
 import lombok.AllArgsConstructor;
@@ -52,6 +54,26 @@ public class AdminController {
     @DeleteMapping("/post/{postId}")
     public StandardResponse deletePost(@PathVariable Long postId) {
         return this.adminService.deletePost(postId);
+    }
+
+    @PostMapping("/subscription")
+    public StandardResponse addSubscription(@RequestBody AddSubscriptionDTO subscriptionDTO) {
+        return this.adminService.addSubscription(subscriptionDTO);
+    }
+
+    @GetMapping("/subscription/{subscriptionId}")
+    public StandardResponse getSubscription(@PathVariable Long subscriptionId) {
+        return this.adminService.getSubscription(subscriptionId);
+    }
+
+    @PutMapping("/subscription/{subscriptionId}")
+    public StandardResponse editSubscription(@PathVariable Long subscriptionId, @RequestBody EditSubscriptionDTO subscriptionDTO) {
+        return this.adminService.editSubscription(subscriptionId, subscriptionDTO);
+    }
+
+    @DeleteMapping("/subscription/{subscriptionId}")
+    public StandardResponse deleteSubscription(@PathVariable Long subscriptionId) {
+        return this.adminService.deleteSubscription(subscriptionId);
     }
 
 }

@@ -1,4 +1,4 @@
-package com.ceylontrail.backend_server.dto.user;
+package com.ceylontrail.backend_server.dto.auth;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

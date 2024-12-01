@@ -1,4 +1,4 @@
-package com.ceylontrail.backend_server.dto.user;
+package com.ceylontrail.backend_server.dto.auth;
 
 import com.ceylontrail.backend_server.entity.OpeningHours;
 import com.ceylontrail.backend_server.entity.SocialMediaLinks;

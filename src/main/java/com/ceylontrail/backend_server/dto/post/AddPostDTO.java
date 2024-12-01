@@ -1,6 +1,5 @@
 package com.ceylontrail.backend_server.dto.post;
 
-import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -11,15 +10,11 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Data
-public class CreatePostDTO {
+public class AddPostDTO {
 
     private String content;
-
-    private int tripId;
-
-    @NotBlank(message = "Privacy Type is required")
+    private String tripId;
     private String privacy;
-
     private List<MultipartFile> images;
 
 }

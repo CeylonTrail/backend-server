@@ -1,6 +1,5 @@
 package com.ceylontrail.backend_server.dto.comment;
 
-import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -8,9 +7,8 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class RemoveCommentDTO {
+public class EditCommentDTO {
 
-    @NotNull(message = "Comment Id is required!")
-    private Long commentId;
+    private String content;
 
 }

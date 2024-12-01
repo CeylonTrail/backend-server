@@ -64,16 +64,14 @@ public class AuthServiceIMPL implements AuthService {
     @Autowired
     private ServiceProviderRepo serviceProviderRepo;
 
-    @Override
-    public void initialRegisterCheck(String email, String username) {
+    private void initialRegisterCheck(String email, String username) {
         if(userRepo.existsByEmail(email))
             throw new AlreadyExistingException("Email is already taken");
         if(userRepo.existsByUsername(username))
             throw new AlreadyExistingException("Username is already taken");
     }
 
-    @Override
-    public String activationTokenGenerator() {
+    private String activationTokenGenerator() {
         String activationToken;
         while (true){
             activationToken = UUID.randomUUID().toString().replace("-", "");
@@ -82,8 +80,7 @@ public class AuthServiceIMPL implements AuthService {
         }
     }
 
-    @Override
-    public UserEntity createUser(String email, String username, String password, String firstname, String lastname, String role) {
+    private UserEntity createUser(String email, String username, String password, String firstname, String lastname, String role) {
         this.initialRegisterCheck(email, username);
         UserEntity user = new UserEntity();
         user.setUsername(username);
@@ -97,11 +94,14 @@ public class AuthServiceIMPL implements AuthService {
             throw new NotFoundException("Role not found");
         else
             user.setRoles(Collections.singletonList(roleOptional.get()));
+        if (Objects.equals(role, "TRAVELLER"))
+            user.setIsTraveller("YES");
+        else
+            user.setIsTraveller("NO");
         return userRepo.save(user);
     }
 
-    @Override
-    public String otpGenerator() {
+    private String otpGenerator() {
         SecureRandom random = new SecureRandom();
         String CHARACTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
         while (true){
@@ -139,6 +139,7 @@ public class AuthServiceIMPL implements AuthService {
             serviceProvider.setServiceType(ServiceProviderTypeEnum.EQUIPMENT);
         else
             serviceProvider.setServiceType(ServiceProviderTypeEnum.OTHER);
+        serviceProvider.setIsSetupComplete("NO");
         serviceProviderRepo.save(serviceProvider);
         mailService.serviceProviderActivationMail(serviceProvider);
         return new StandardResponse(200, "Registration success", null);

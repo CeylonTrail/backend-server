@@ -16,8 +16,9 @@ import com.ceylontrail.backend_server.repo.UserRepo;
 import com.ceylontrail.backend_server.service.AuthService;
 import com.ceylontrail.backend_server.service.ImageService;
 import com.ceylontrail.backend_server.service.PostService;
+import com.ceylontrail.backend_server.service.TripService;
 import com.ceylontrail.backend_server.util.StandardResponse;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,19 +26,15 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
+@AllArgsConstructor
 public class PostServiceIMPL implements PostService {
 
-    @Autowired
-    private PostRepo postRepo;
+    private final AuthService authService;
+    private final ImageService imageService;
+    private final TripService tripService;
 
-    @Autowired
-    private UserRepo userRepo;
-
-    @Autowired
-    private AuthService authService;
-
-    @Autowired
-    private ImageService imageService;
+    private final PostRepo postRepo;
+    private final UserRepo userRepo;
 
     @Override
     public PostEntity initialPostCheck(Long postId) {
@@ -48,8 +45,7 @@ public class PostServiceIMPL implements PostService {
         return post;
     }
 
-    @Override
-    public PostEntity initialPostAndUserCheck(Long postId) {
+    private PostEntity initialPostAndUserCheck(Long postId) {
         PostEntity post = this.initialPostCheck(postId);
         UserEntity loggedUser = userRepo.findByUserId(authService.getAuthUserId());
         if (loggedUser.getUserId() != post.getUser().getUserId()) {
@@ -102,11 +98,10 @@ public class PostServiceIMPL implements PostService {
     }
 
     @Override
-    public StandardResponse getUserPosts() {
-        List<GetPostFeedDTO> postsMap = postRepo.findPostEntitiesByUser_UserIdOrderByCreatedAtDesc(authService.getAuthUserId()).stream()
+    public List<GetPostFeedDTO> getUserPosts(int userId) {
+        return postRepo.findPostEntitiesByUser_UserIdOrderByCreatedAtDesc(userId).stream()
                 .map(this::postPreProcessForSendToFeed)
-                .collect(Collectors.toList());
-        return new StandardResponse(200, "Posts fetched successfully", postsMap);
+                .toList();
     }
 
     @Override
@@ -162,14 +157,14 @@ public class PostServiceIMPL implements PostService {
         return new StandardResponse(200, "Post fetched successfully", postDTO);
     }
 
-
-
     @Override
     @Transactional
-    public StandardResponse createPost(CreatePostDTO postDTO) {
+    public StandardResponse createPost(AddPostDTO postDTO) {
         PostEntity post = new PostEntity();
         post.setUser(userRepo.findByUserId(authService.getAuthUserId()));
         post.setContent(postDTO.getContent());
+        if (postDTO.getTripId() != null)
+            post.setTrip(this.tripService.initialTripAndUserCheck(Integer.parseInt(postDTO.getTripId())));
         if (Objects.equals(postDTO.getPrivacy(), String.valueOf(PostPrivacyEnum.FOLLOWERS)))
             post.setPrivacy(PostPrivacyEnum.FOLLOWERS);
         else if (Objects.equals(postDTO.getPrivacy(), String.valueOf(PostPrivacyEnum.ONLY_ME)))
@@ -185,8 +180,8 @@ public class PostServiceIMPL implements PostService {
     }
 
     @Override
-    public StandardResponse updatePost(EditPostDTO postDTO) {
-        PostEntity post = this.initialPostAndUserCheck(postDTO.getPostId());
+    public StandardResponse updatePost(Long postId, EditPostDTO postDTO) {
+        PostEntity post = this.initialPostAndUserCheck(postId);
         post.setContent(postDTO.getContent());
         if (Objects.equals(postDTO.getPrivacy(), String.valueOf(PostPrivacyEnum.FOLLOWERS)))
             post.setPrivacy(PostPrivacyEnum.FOLLOWERS);
@@ -199,16 +194,16 @@ public class PostServiceIMPL implements PostService {
     }
 
     @Override
-    public StandardResponse deletePost(DeletePostDTO postDTO) {
-        PostEntity post = this.initialPostAndUserCheck(postDTO.getPostId());
+    public StandardResponse deletePost(Long postId) {
+        PostEntity post = this.initialPostAndUserCheck(postId);
         imageService.deletePostImages(post.getImages());
         postRepo.delete(post);
         return new StandardResponse(200, "Post deleted successfully", null);
     }
 
     @Override
-    public StandardResponse addLikePost(LikePostDTO postDTO) {
-        PostEntity post = this.initialPostCheck(postDTO.getPostId());
+    public StandardResponse addLike(Long postId) {
+        PostEntity post = this.initialPostCheck(postId);
         UserEntity loggedUser = userRepo.findByUserId(authService.getAuthUserId());
         if (post.getLikes().contains(loggedUser))
             throw new AlreadyExistingException("Post liked already exists");
@@ -218,8 +213,8 @@ public class PostServiceIMPL implements PostService {
     }
 
     @Override
-    public StandardResponse removeLikePost(LikePostDTO postDTO) {
-        PostEntity post = this.initialPostCheck(postDTO.getPostId());
+    public StandardResponse removeLike(Long postId) {
+        PostEntity post = this.initialPostCheck(postId);
         UserEntity loggedUser = userRepo.findByUserId(authService.getAuthUserId());
         if (!post.getLikes().contains(loggedUser))
             throw new AlreadyExistingException("Post liked does not exist");

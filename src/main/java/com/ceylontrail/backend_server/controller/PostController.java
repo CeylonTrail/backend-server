@@ -1,68 +1,57 @@
 package com.ceylontrail.backend_server.controller;
 
-import com.ceylontrail.backend_server.dto.post.CreatePostDTO;
-import com.ceylontrail.backend_server.dto.post.DeletePostDTO;
+import com.ceylontrail.backend_server.dto.post.AddPostDTO;
 import com.ceylontrail.backend_server.dto.post.EditPostDTO;
-import com.ceylontrail.backend_server.dto.post.LikePostDTO;
 import com.ceylontrail.backend_server.service.PostService;
 import com.ceylontrail.backend_server.util.StandardResponse;
-import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @CrossOrigin
+@AllArgsConstructor
 @RequestMapping("api/v1/post")
 public class PostController {
 
-    @Autowired
-    private PostService postService;
+    private final PostService postService;
 
-    // Posts created by logged user
-    @GetMapping
-    public StandardResponse getUserPosts() {
-        return postService.getUserPosts();
-    }
-
-    // Post shown in community feed when logged in
     @GetMapping(path = "/community-feed")
     public StandardResponse getCommunityPosts() {
         return postService.getCommunityPosts();
     }
 
-    // Post shown in community feed when not logged in
     @GetMapping(path = "/community-feed/public")
     public StandardResponse getCommunityPublicPosts() {
         return postService.getCommunityPublicPosts();
     }
 
     @GetMapping("/{postId}")
-    public StandardResponse getPostByPostId(@PathVariable String postId) {
-        return postService.getPostByPostId(Long.valueOf(postId));
+    public StandardResponse getPostByPostId(@PathVariable Long postId) {
+        return postService.getPostByPostId(postId);
     }
 
     @PostMapping
-    public StandardResponse createPost(@ModelAttribute CreatePostDTO postDTO) {
+    public StandardResponse createPost(@ModelAttribute AddPostDTO postDTO) {
         return postService.createPost(postDTO);
     }
 
-    @PutMapping
-    public StandardResponse updatePost(@Valid @RequestBody EditPostDTO postDTO) {
-        return postService.updatePost(postDTO);
+    @PutMapping("/{postId}")
+    public StandardResponse updatePost(@PathVariable Long postId, @RequestBody EditPostDTO postDTO) {
+        return postService.updatePost(postId, postDTO);
     }
 
-    @DeleteMapping
-    public StandardResponse deletePost(@Valid @RequestBody DeletePostDTO postDTO) {
-        return postService.deletePost(postDTO);
+    @DeleteMapping("/{postId}")
+    public StandardResponse deletePost(@PathVariable Long postId) {
+        return postService.deletePost(postId);
     }
 
-    @PostMapping(path = "/like")
-    public StandardResponse addLikePost(@Valid @RequestBody LikePostDTO postDTO) {
-        return postService.addLikePost(postDTO);
+    @PutMapping(path = "/add-like/{postId}")
+    public StandardResponse addLikePost(@PathVariable Long postId) {
+        return postService.addLike(postId);
     }
 
-    @DeleteMapping(path = "/like")
-    public StandardResponse removeLikePost(@Valid @RequestBody LikePostDTO postDTO) {
-        return postService.removeLikePost(postDTO);
+    @PutMapping(path = "/remove-like/{postId}")
+    public StandardResponse removeLikePost(@PathVariable Long postId) {
+        return postService.removeLike(postId);
     }
 }

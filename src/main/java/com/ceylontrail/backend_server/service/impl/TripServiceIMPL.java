@@ -114,6 +114,7 @@ public class TripServiceIMPL implements TripService {
         int userId = authService.getAuthUserId();
         List<TripEntity> allTrips = tripRepo.findAllByUserId(userId);
 
+
         if(!allTrips.isEmpty()){
             List<ResponseGetAllTripDTO> getAllTripDTOS = new ArrayList<>();
             for (TripEntity tripEntity : allTrips) {

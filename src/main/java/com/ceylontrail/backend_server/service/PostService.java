@@ -4,13 +4,12 @@ import com.ceylontrail.backend_server.dto.post.*;
 import com.ceylontrail.backend_server.entity.PostEntity;
 import com.ceylontrail.backend_server.util.StandardResponse;
 
-public interface PostService {
+import java.util.List;
 
+public interface PostService {
     PostEntity initialPostCheck(Long postId);
 
-    PostEntity initialPostAndUserCheck(Long postId);
-
-    StandardResponse getUserPosts();
+    List<GetPostFeedDTO> getUserPosts(int userId);
 
     StandardResponse getCommunityPosts();
 
@@ -18,14 +17,21 @@ public interface PostService {
 
     StandardResponse getPostByPostId(Long postId);
 
-    StandardResponse createPost(CreatePostDTO postDTO);
+    StandardResponse createPost(AddPostDTO postDTO);
 
-    StandardResponse updatePost(EditPostDTO postDTO);
+    StandardResponse updatePost(Long postId, EditPostDTO postDTO);
 
-    StandardResponse deletePost(DeletePostDTO postDTO);
+    StandardResponse deletePost(Long postId);
 
-    StandardResponse addLikePost(LikePostDTO postDTO);
+    StandardResponse addLike(Long postId);
 
-    StandardResponse removeLikePost(LikePostDTO postDTO);
+    StandardResponse removeLike(Long postId);
 
+    StandardResponse addComment(Long postId, AddCommentDTO commentDTO);
+
+    StandardResponse updateComment(Long commentId, EditCommentDTO commentDTO);
+
+    StandardResponse removeComment(Long commentId);
+
+    StandardResponse reportPost(Long postId, ReportPostDTO postDTO);
 }

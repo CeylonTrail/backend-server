@@ -1,6 +1,5 @@
 package com.ceylontrail.backend_server.dto.post;
 
-import com.ceylontrail.backend_server.dto.comment.GetCommentDTO;
 import com.ceylontrail.backend_server.dto.trip.CommunityTripDTO;
 import com.ceylontrail.backend_server.dto.user.CommunityUserDTO;
 import com.ceylontrail.backend_server.entity.enums.PostPrivacyEnum;

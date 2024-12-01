@@ -26,4 +26,12 @@ public interface PostService {
     StandardResponse addLike(Long postId);
 
     StandardResponse removeLike(Long postId);
+
+    StandardResponse addComment(AddCommentDTO commentDTO);
+
+    StandardResponse updateComment(Long commentId, EditCommentDTO commentDTO);
+
+    StandardResponse removeComment(Long commentId);
+
+    StandardResponse reportPost(Long postId, ReportPostDTO postDTO);
 }

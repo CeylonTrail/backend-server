@@ -28,10 +28,21 @@ public class TripController {
         return tripService.getTrip(tripId);
 
     }
-
     @DeleteMapping("/delete-trip/{trip_id}")
     public StandardResponse deleteTrip(@PathVariable(value = "trip_id") int tripId){
         return tripService.deleteTrip(tripId);
+    }
+
+
+    @GetMapping("/save-trip/{trip_id}")
+    public StandardResponse saveTrip(@PathVariable(value = "trip_id")int tripId){
+        return tripService.saveCreatedTrip(tripId);
+    }
+
+    @GetMapping("/saved-trips")
+    public StandardResponse getSavedTrips(){
+        return tripService.getSavedTrips();
+
     }
 
 

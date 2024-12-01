@@ -7,4 +7,5 @@ import java.util.List;
 
 public interface TripRepo extends JpaRepository<TripEntity,Integer> {
     List<TripEntity> findAllByUserId(int userId);
+    TripEntity findByTripId(int id);
 }

@@ -1,8 +1,7 @@
 package com.ceylontrail.backend_server.service.impl;
 
 import com.ceylontrail.backend_server.dto.comment.AddCommentDTO;
-import com.ceylontrail.backend_server.dto.comment.RemoveCommentDTO;
-import com.ceylontrail.backend_server.dto.comment.UpdateCommentDTO;
+import com.ceylontrail.backend_server.dto.comment.EditCommentDTO;
 import com.ceylontrail.backend_server.entity.CommentEntity;
 import com.ceylontrail.backend_server.entity.PostEntity;
 import com.ceylontrail.backend_server.entity.UserEntity;
@@ -14,29 +13,20 @@ import com.ceylontrail.backend_server.service.AuthService;
 import com.ceylontrail.backend_server.service.CommentService;
 import com.ceylontrail.backend_server.service.PostService;
 import com.ceylontrail.backend_server.util.StandardResponse;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.util.HashMap;
-import java.util.Map;
-
 @Service
+@AllArgsConstructor
 public class CommentServiceIMPL implements CommentService {
 
-    @Autowired
-    private CommentRepo commentRepo;
+    private final UserRepo userRepo;
+    private final CommentRepo commentRepo;
 
-    @Autowired
-    private UserRepo userRepo;
+    private final AuthService authService;
+    private final PostService postService;
 
-    @Autowired
-    private AuthService authService;
-
-    @Autowired
-    private PostService postService;
-
-    @Override
-    public CommentEntity initialCommentAndUserCheck(Long commentId) {
+    private CommentEntity initialCommentAndUserCheck(Long commentId) {
         CommentEntity comment = commentRepo.findByCommentId(commentId);
         if (comment == null)
             throw new NotFoundException("Comment does not exist");
@@ -54,23 +44,21 @@ public class CommentServiceIMPL implements CommentService {
         comment.setPost(post);
         comment.setUser(user);
         comment.setContent(commentDTO.getContent());
-        CommentEntity savedComment = commentRepo.save(comment);
-        Map<String, Long> commentMap = new HashMap<>();
-        commentMap.put("commentId", savedComment.getCommentId());
-        return new StandardResponse(200, "Comment added successfully", commentMap);
+        commentRepo.save(comment);
+        return new StandardResponse(200, "Comment added successfully", null);
     }
 
     @Override
-    public StandardResponse updateComment(UpdateCommentDTO commentDTO) {
-        CommentEntity comment = this.initialCommentAndUserCheck(commentDTO.getCommentId());
+    public StandardResponse updateComment(Long commentId, EditCommentDTO commentDTO) {
+        CommentEntity comment = this.initialCommentAndUserCheck(commentId);
         comment.setContent(commentDTO.getContent());
         commentRepo.save(comment);
         return new StandardResponse(200, "Comment updated successfully", null);
     }
 
     @Override
-    public StandardResponse removeComment(RemoveCommentDTO commentDTO) {
-        CommentEntity comment = this.initialCommentAndUserCheck(commentDTO.getCommentId());
+    public StandardResponse removeComment(Long commentId) {
+        CommentEntity comment = this.initialCommentAndUserCheck(commentId);
         commentRepo.delete(comment);
         return new StandardResponse(200, "Comment deleted successfully", null);
     }

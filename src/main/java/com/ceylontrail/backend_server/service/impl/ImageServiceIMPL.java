@@ -35,8 +35,7 @@ public class ImageServiceIMPL implements ImageService {
     @Value("${server.url}")
     private String serverUrl;
 
-    @Override
-    public String generateUniqueFilename(MultipartFile file) {
+    private String generateUniqueFilename(MultipartFile file) {
         String fileName;
         String fileExtension = getFileExtension(file.getOriginalFilename());
         do {
@@ -53,6 +52,7 @@ public class ImageServiceIMPL implements ImageService {
         }
     }
 
+    @Override
     public ImageEntity uploadImage(MultipartFile file){
         String filename = this.generateUniqueFilename(file);
         Path filepath = Paths.get(uploadDir, filename);
@@ -67,6 +67,7 @@ public class ImageServiceIMPL implements ImageService {
         return imageRepo.save(image);
     }
 
+    @Override
     public void deleteImage(ImageEntity image) {
         String filename = image.getFilename();
         Path filepath = Paths.get(uploadDir, filename);

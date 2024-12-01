@@ -3,14 +3,10 @@ import com.ceylontrail.backend_server.controller.AuthController;
 import com.ceylontrail.backend_server.dto.EventDTO;
 import com.ceylontrail.backend_server.dto.response.ResponseGetAllTripDTO;
 import com.ceylontrail.backend_server.dto.requests.RequestTripSaveDTO;
-import com.ceylontrail.backend_server.entity.EventEntity;
-import com.ceylontrail.backend_server.entity.ImageEntity;
-import com.ceylontrail.backend_server.entity.PlaceEntity;
-import com.ceylontrail.backend_server.entity.TripEntity;
-import com.ceylontrail.backend_server.repo.EventRepo;
-import com.ceylontrail.backend_server.repo.ImageRepo;
-import com.ceylontrail.backend_server.repo.PlaceRepo;
-import com.ceylontrail.backend_server.repo.TripRepo;
+import com.ceylontrail.backend_server.entity.*;
+import com.ceylontrail.backend_server.exception.NotFoundException;
+import com.ceylontrail.backend_server.exception.UnauthorizedException;
+import com.ceylontrail.backend_server.repo.*;
 import com.ceylontrail.backend_server.service.AuthService;
 import com.ceylontrail.backend_server.service.PlacesService;
 import com.ceylontrail.backend_server.service.TripService;
@@ -30,6 +26,8 @@ public class TripServiceIMPL implements TripService {
     @Autowired
     private TripRepo tripRepo;
     @Autowired
+    private UserRepo userRepo;
+    @Autowired
     private Mapper mapper;
     @Autowired
     private EventRepo eventRepo;
@@ -42,7 +40,24 @@ public class TripServiceIMPL implements TripService {
     @Autowired
     private PlacesService placesService;
 
+    @Override
+    public TripEntity initialTripCheck(int tripId) {
+        TripEntity trip = tripRepo.findByTripId(tripId);
+        if (trip == null) {
+            throw new NotFoundException("Trip does not exist");
+        }
+        return trip;
+    }
 
+    @Override
+    public TripEntity initialTripAndUserCheck(int tripId) {
+        TripEntity trip = this.initialTripCheck(tripId);
+        UserEntity loggedUser = userRepo.findByUserId(authService.getAuthUserId());
+        if (loggedUser.getUserId() != trip.getUserId()) {
+            throw new UnauthorizedException("Trip author is not logged in");
+        }
+        return trip;
+    }
 
     @Override
     public StandardResponse saveTrip(RequestTripSaveDTO requestTripSaveDTO) {

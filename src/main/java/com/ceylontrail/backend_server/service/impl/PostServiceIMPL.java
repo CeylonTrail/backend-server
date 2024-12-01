@@ -238,9 +238,9 @@ public class PostServiceIMPL implements PostService {
     }
 
     @Override
-    public StandardResponse addComment(AddCommentDTO commentDTO) {
+    public StandardResponse addComment(Long postId, AddCommentDTO commentDTO) {
         CommentEntity comment = new CommentEntity();
-        comment.setPost(this.initialPostCheck(commentDTO.getPostId()));
+        comment.setPost(this.initialPostCheck(postId));
         comment.setUser(userRepo.findByUserId(authService.getAuthUserId()));
         comment.setContent(commentDTO.getContent());
         commentRepo.save(comment);

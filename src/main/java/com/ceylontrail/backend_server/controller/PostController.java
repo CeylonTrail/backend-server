@@ -48,19 +48,19 @@ public class PostController {
         return postService.deletePost(postId);
     }
 
-    @PutMapping(path = "/add-like/{postId}")
+    @PutMapping(path = "/like/{postId}")
     public StandardResponse addLikePost(@PathVariable Long postId) {
         return postService.addLike(postId);
     }
 
-    @PutMapping(path = "/remove-like/{postId}")
+    @DeleteMapping(path = "/like/{postId}")
     public StandardResponse removeLikePost(@PathVariable Long postId) {
         return postService.removeLike(postId);
     }
 
-    @PostMapping("/comment")
-    public StandardResponse addComment(@RequestBody AddCommentDTO commentDTO) {
-        return postService.addComment(commentDTO);
+    @PostMapping("/comment/{postId}")
+    public StandardResponse addComment(@PathVariable Long postId, @RequestBody AddCommentDTO commentDTO) {
+        return postService.addComment(postId, commentDTO);
     }
 
     @PutMapping("/comment/{commentId}")

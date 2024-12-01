@@ -1,9 +1,9 @@
 package com.ceylontrail.backend_server.service.impl;
 
 import com.ceylontrail.backend_server.dto.auth.*;
-import com.ceylontrail.backend_server.dto.user.LoggedAdminDTO;
-import com.ceylontrail.backend_server.dto.user.LoggedSPDTO;
-import com.ceylontrail.backend_server.dto.user.LoggedTravellerDTO;
+import com.ceylontrail.backend_server.dto.auth.LoggedAdminDTO;
+import com.ceylontrail.backend_server.dto.auth.LoggedSPDTO;
+import com.ceylontrail.backend_server.dto.auth.LoggedTravellerDTO;
 import com.ceylontrail.backend_server.entity.RoleEntity;
 import com.ceylontrail.backend_server.entity.ServiceProviderEntity;
 import com.ceylontrail.backend_server.entity.TravellerEntity;

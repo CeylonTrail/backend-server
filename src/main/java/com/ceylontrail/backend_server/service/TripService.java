@@ -17,4 +17,8 @@ public interface TripService {
 
     TripEntity initialTripAndUserCheck(int tripId);
 
+    StandardResponse saveCreatedTrip(int tripId);
+
+    StandardResponse getSavedTrips();
+
 }

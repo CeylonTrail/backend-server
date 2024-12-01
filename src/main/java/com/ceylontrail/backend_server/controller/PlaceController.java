@@ -29,15 +29,13 @@ public class PlaceController {
             })
     @GetMapping(
             path = {"/places"},
-            params = {"location","radius","count"}
+            params = {"location"}
     )
     public StandardResponse getPlaces(
-            @RequestParam(value = "location") String location,
-            @RequestParam(value = "radius") int radius,
-            @RequestParam(value = "count") int count
+            @RequestParam(value = "location") String location
 
     ) {
-       return googlePlacesService.getPlaces(location,radius,count);
+       return googlePlacesService.getPlaces(location,5000,10);
 
     }
 
@@ -46,10 +44,8 @@ public class PlaceController {
             params ={"page"}
     )
     public StandardResponse getPlaceByName(
-            @RequestParam(value = "page") int page,
-            @RequestParam(value = "size") @Max(50) int size
-    ){
-         return googlePlacesService.getAllPlaces(page,size);
+            @RequestParam(value = "page") int page
+    ){         return googlePlacesService.getAllPlaces(page,10);
     }
 
 }

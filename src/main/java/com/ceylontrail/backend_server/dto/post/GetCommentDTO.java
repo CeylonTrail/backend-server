@@ -1,4 +1,4 @@
-package com.ceylontrail.backend_server.dto.comment;
+package com.ceylontrail.backend_server.dto.post;
 
 import com.ceylontrail.backend_server.dto.user.CommunityUserDTO;
 import lombok.AllArgsConstructor;

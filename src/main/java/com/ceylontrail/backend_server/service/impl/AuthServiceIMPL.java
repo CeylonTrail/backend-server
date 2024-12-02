@@ -1,12 +1,15 @@
 package com.ceylontrail.backend_server.service.impl;
 
 import com.ceylontrail.backend_server.dto.auth.*;
-import com.ceylontrail.backend_server.dto.user.LoggedUserDTO;
+import com.ceylontrail.backend_server.dto.auth.LoggedAdminDTO;
+import com.ceylontrail.backend_server.dto.auth.LoggedSPDTO;
+import com.ceylontrail.backend_server.dto.auth.LoggedTravellerDTO;
 import com.ceylontrail.backend_server.entity.RoleEntity;
 import com.ceylontrail.backend_server.entity.ServiceProviderEntity;
 import com.ceylontrail.backend_server.entity.TravellerEntity;
 import com.ceylontrail.backend_server.entity.UserEntity;
 import com.ceylontrail.backend_server.entity.enums.ServiceProviderTypeEnum;
+import com.ceylontrail.backend_server.entity.enums.VerificationStatusEnum;
 import com.ceylontrail.backend_server.exception.AlreadyExistingException;
 import com.ceylontrail.backend_server.exception.BadCredentialException;
 import com.ceylontrail.backend_server.exception.NotFoundException;
@@ -20,7 +23,7 @@ import com.ceylontrail.backend_server.security.webtoken.JwtService;
 import com.ceylontrail.backend_server.service.AuthService;
 import com.ceylontrail.backend_server.service.MailService;
 import com.ceylontrail.backend_server.util.StandardResponse;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.AllArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -35,45 +38,29 @@ import java.time.LocalDateTime;
 import java.util.*;
 
 @Service
+@AllArgsConstructor
 public class AuthServiceIMPL implements AuthService {
 
-    @Autowired
-    private UserRepo userRepo;
+    private final PasswordEncoder passwordEncoder;
+    private final AuthenticationManager authenticationManager;
+    private final CustomUserDetailsService customUserDetailsService;
 
-    @Autowired
-    private RoleRepo roleRepo;
+    private final JwtService jwtService;
+    private final MailService mailService;
 
-    @Autowired
-    private PasswordEncoder passwordEncoder;
+    private final UserRepo userRepo;
+    private final RoleRepo roleRepo;
+    private final ServiceProviderRepo spRepo;
+    private final TravellerRepo travellerRepo;
 
-    @Autowired
-    private AuthenticationManager authenticationManager;
-
-    @Autowired
-    private JwtService jwtService;
-
-    @Autowired
-    private CustomUserDetailsService customUserDetailsService;
-
-    @Autowired
-    private MailService mailService;
-  
-    @Autowired
-    private TravellerRepo travellerRepo;
-
-    @Autowired
-    private ServiceProviderRepo serviceProviderRepo;
-
-    @Override
-    public void initialRegisterCheck(String email, String username) {
+    private void initialRegisterCheck(String email, String username) {
         if(userRepo.existsByEmail(email))
             throw new AlreadyExistingException("Email is already taken");
         if(userRepo.existsByUsername(username))
             throw new AlreadyExistingException("Username is already taken");
     }
 
-    @Override
-    public String activationTokenGenerator() {
+    private String activationTokenGenerator() {
         String activationToken;
         while (true){
             activationToken = UUID.randomUUID().toString().replace("-", "");
@@ -82,8 +69,7 @@ public class AuthServiceIMPL implements AuthService {
         }
     }
 
-    @Override
-    public UserEntity createUser(String email, String username, String password, String firstname, String lastname, String role) {
+    private UserEntity createUser(String email, String username, String password, String firstname, String lastname, String role) {
         this.initialRegisterCheck(email, username);
         UserEntity user = new UserEntity();
         user.setUsername(username);
@@ -97,11 +83,14 @@ public class AuthServiceIMPL implements AuthService {
             throw new NotFoundException("Role not found");
         else
             user.setRoles(Collections.singletonList(roleOptional.get()));
+        if (Objects.equals(role, "TRAVELLER"))
+            user.setIsTraveller("YES");
+        else
+            user.setIsTraveller("NO");
         return userRepo.save(user);
     }
 
-    @Override
-    public String otpGenerator() {
+    private String otpGenerator() {
         SecureRandom random = new SecureRandom();
         String CHARACTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
         while (true){
@@ -139,7 +128,8 @@ public class AuthServiceIMPL implements AuthService {
             serviceProvider.setServiceType(ServiceProviderTypeEnum.EQUIPMENT);
         else
             serviceProvider.setServiceType(ServiceProviderTypeEnum.OTHER);
-        serviceProviderRepo.save(serviceProvider);
+        serviceProvider.setIsSetupComplete("NO");
+        spRepo.save(serviceProvider);
         mailService.serviceProviderActivationMail(serviceProvider);
         return new StandardResponse(200, "Registration success", null);
     }
@@ -149,26 +139,71 @@ public class AuthServiceIMPL implements AuthService {
          if(userRepo.existsByEmail(loginDTO.getEmail())) {
              Authentication authentication;
              try {
-                 authentication = authenticationManager.authenticate(
-                         new UsernamePasswordAuthenticationToken(loginDTO.getEmail(), loginDTO.getPassword())
-                 );
+                 authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(loginDTO.getEmail(), loginDTO.getPassword()));
              } catch (BadCredentialsException e) {
                  throw new BadCredentialException("Password is incorrect");
              }
              if (authentication.isAuthenticated()) {
                  UserEntity user = userRepo.findByEmail(loginDTO.getEmail());
-                 LoggedUserDTO loggedUserDTO = new LoggedUserDTO(
-                         jwtService.generateToken(customUserDetailsService.loadUserByUsername(loginDTO.getEmail())),
-                         user.getUserId(),
-                         user.getUsername(),
-                         user.getEmail(),
-                         user.getFirstname(),
-                         user.getLastname(),
-                         user.getActivationToken() == null,
-                         user.getRoles().get(0).getRoleName(),
-                         user.getProfilePictureUrl()
-                 );
-                 return new StandardResponse(200, "Login success", loggedUserDTO);
+                 if (Objects.equals(user.getRoles().get(0).getRoleName(), "ADMIN")){
+                     LoggedAdminDTO adminDTO = new LoggedAdminDTO();
+                     adminDTO.setAccessToken(this.jwtService.generateToken(customUserDetailsService.loadUserByUsername(user.getEmail())));
+                     adminDTO.setUserId(user.getUserId());
+                     adminDTO.setUsername(user.getUsername());
+                     adminDTO.setEmail(user.getEmail());
+                     return new StandardResponse(200, "Admin login success", adminDTO);
+                 } else if (Objects.equals(user.getRoles().get(0).getRoleName(), "SERVICE_PROVIDER")) {
+                     ServiceProviderEntity sp = user.getServiceProvider();
+                     LoggedSPDTO spDTO = new LoggedSPDTO();
+                     spDTO.setAccessToken(this.jwtService.generateToken(customUserDetailsService.loadUserByUsername(user.getEmail())));
+                     spDTO.setUserId(user.getUserId());
+                     spDTO.setServiceProviderId(sp.getServiceProviderId());
+                     spDTO.setUsername(user.getUsername());
+                     spDTO.setEmail(user.getEmail());
+                     spDTO.setServiceName(sp.getServiceName());
+                     if (Objects.equals(sp.getServiceType(), ServiceProviderTypeEnum.ACCOMMODATION))
+                         spDTO.setServiceType(String.valueOf(ServiceProviderTypeEnum.ACCOMMODATION));
+                     else if (Objects.equals(sp.getServiceType(), ServiceProviderTypeEnum.RESTAURANT))
+                         spDTO.setServiceType(String.valueOf(ServiceProviderTypeEnum.RESTAURANT));
+                     else if (Objects.equals(sp.getServiceType(), ServiceProviderTypeEnum.EQUIPMENT))
+                         spDTO.setServiceType(String.valueOf(ServiceProviderTypeEnum.EQUIPMENT));
+                     else
+                         spDTO.setServiceType(String.valueOf(ServiceProviderTypeEnum.OTHER));
+                     spDTO.setFirstname(user.getFirstname());
+                     spDTO.setLastname(user.getLastname());
+                     spDTO.setAccountState(user.getActivationToken() == null);
+                     if (Objects.equals(sp.getIsSetupComplete(), "NO")) {
+                         spDTO.setSetupState(false);
+                         return new StandardResponse(200, "Service Provider login success with no setup", spDTO);
+                     } else {
+                         spDTO.setSetupState(true);
+                         if (Objects.equals(sp.getVerificationStatus(), VerificationStatusEnum.PENDING))
+                             spDTO.setVerificationStatus(String.valueOf(VerificationStatusEnum.PENDING));
+                         else if (Objects.equals(sp.getVerificationStatus(), VerificationStatusEnum.REJECTED))
+                             spDTO.setVerificationStatus(String.valueOf(VerificationStatusEnum.REJECTED));
+                         else
+                             spDTO.setVerificationStatus(String.valueOf(VerificationStatusEnum.APPROVED));
+                         spDTO.setDescription(sp.getDescription());
+                         spDTO.setContactNumber(sp.getContactNumber());
+                         spDTO.setAddress(sp.getAddress());
+                         spDTO.setProfilePictureUrl(user.getProfilePictureUrl());
+                         spDTO.setCoverPictureUrl(sp.getCoverPictureUrl());
+                         spDTO.setSocialMediaLinks(sp.getSocialMediaLinks());
+                         spDTO.setOpeningHours(sp.getOpeningHours());
+                         return new StandardResponse(200, "Service Provider login success with setup", spDTO);
+                     }
+                 } else {
+                     LoggedTravellerDTO travellerDTO = new LoggedTravellerDTO();
+                     travellerDTO.setAccessToken(this.jwtService.generateToken(customUserDetailsService.loadUserByUsername(user.getEmail())));
+                     travellerDTO.setUserId(user.getUserId());
+                     travellerDTO.setUsername(user.getUsername());
+                     travellerDTO.setEmail(user.getEmail());
+                     travellerDTO.setFirstname(user.getFirstname());
+                     travellerDTO.setLastname(user.getLastname());
+                     travellerDTO.setAccountState(user.getActivationToken() == null);
+                     travellerDTO.setProfilePictureUrl(user.getProfilePictureUrl());
+                     return new StandardResponse(200, "Traveller login success", travellerDTO);
+                 }
              }
          } else throw new NotFoundException("Email not found");
         return new StandardResponse(500, "Internal server error", null);

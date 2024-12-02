@@ -8,7 +8,5 @@ import java.util.Optional;
 
 public interface TripRepo extends JpaRepository<TripEntity,Integer> {
     List<TripEntity> findAllByUserId(int userId);
-
-
-    List<TripEntity> findByTripId(Integer tripId);
+    TripEntity findByTripId(int id);
 }

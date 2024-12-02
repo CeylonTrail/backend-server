@@ -69,7 +69,7 @@ public class PlacesServiceIMPL implements PlacesService {
                 String longitude = locationMap.get("lng").toString();
                 return latitude + "," + longitude;
             }else{
-                return "location not found "+location;
+                return null;
             }
         }
         return null;
@@ -80,7 +80,7 @@ public class PlacesServiceIMPL implements PlacesService {
         String coordinates = getCoordinates(location);
         System.out.println(coordinates);
         if (coordinates == null) {
-            throw new BadRequestException("Unable to get coordinates for location: " + location);
+            return new StandardResponse(404,"error",null);
         }
         String url = String.format("%s?location=%s&radius=%d&type=tourist_attraction&key=%s", apiUrl, coordinates, radius, apiKey);
         int resultsCount = 0;

@@ -15,6 +15,11 @@ public class AdminController {
 
     private final AdminService adminService;
 
+    @GetMapping("/dashboard")
+    public StandardResponse getDashboard() {
+        return adminService.getDashboard();
+    }
+
     @GetMapping("/user/traveller")
     public StandardResponse getTravellers(
             @RequestParam(defaultValue = "") String key,

@@ -113,4 +113,9 @@ public class ImageServiceIMPL implements ImageService {
         }
     }
 
+    @Override
+    public List<String> getImageUrlsByUserId(int userId) {
+        return imageRepo.findAllImageUrlsByUserId(userId);
+    }
+
 }

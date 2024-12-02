@@ -17,4 +17,6 @@ public interface ImageService {
     void deletePostImages(List<ImageEntity> images);
 
     Resource getImageResource(String filename);
+
+    List<String> getImageUrlsByUserId(int userId);
 }

@@ -1,17 +1,16 @@
 package com.ceylontrail.backend_server.service.impl;
 
+import com.ceylontrail.backend_server.dto.advertisement.AdvertisementDTO;
 import com.ceylontrail.backend_server.dto.sp.SPSetupDTO;
 import com.ceylontrail.backend_server.dto.sp.SubscriptionPurchaseDTO;
 import com.ceylontrail.backend_server.entity.*;
 import com.ceylontrail.backend_server.entity.enums.VerificationStatusEnum;
-import com.ceylontrail.backend_server.repo.PaymentRepo;
-import com.ceylontrail.backend_server.repo.ServiceProviderRepo;
-import com.ceylontrail.backend_server.repo.SubscriptionPlanRepo;
-import com.ceylontrail.backend_server.repo.UserRepo;
+import com.ceylontrail.backend_server.repo.*;
 import com.ceylontrail.backend_server.service.AuthService;
 import com.ceylontrail.backend_server.service.ImageService;
 import com.ceylontrail.backend_server.service.SPService;
 import com.ceylontrail.backend_server.util.StandardResponse;
+import com.ceylontrail.backend_server.util.mapper.Mapper;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
@@ -36,6 +35,10 @@ public class SPServiceIMPL implements SPService {
     private final ServiceProviderRepo spRepo;
     private final PaymentRepo paymentRepo;
     private final SubscriptionPlanRepo subscriptionPlanRepo;
+    private final AdvertisementRepo advertisementRepo;
+
+    private final Mapper mapper;
+
 
     private List<OpeningHours> mapJsonToOpeningHours(String json) {
         try {
@@ -132,5 +135,66 @@ public class SPServiceIMPL implements SPService {
             sp.setSubscriptionExpiryDate(null);
             spRepo.save(sp);
         }
+    }
+
+    @Override
+    public StandardResponse createAdvertisement(AdvertisementDTO advertisementDTO) {
+        ServiceProviderEntity sp = spRepo.findByUser(userRepo.findByUserId(authService.getAuthUserId()));
+        int publishedAdds = sp.getPublishedAddCount();
+        int addCount = sp.getSubscriptionPlan().getAdCount();
+        if(publishedAdds<addCount){
+            AdvertisementEntity advertisement = new AdvertisementEntity(
+                    advertisementDTO.getTitle(),
+                    advertisementDTO.getDescription(),
+                    advertisementDTO.getRateType(),
+                    advertisementDTO.getRate(),
+                    advertisementDTO.getDiscount()
+
+            );
+            advertisement.setServiceProvider(sp);
+            advertisement.setUserId(authService.getAuthUserId());
+            advertisementRepo.save(advertisement);
+            publishedAdds++;
+            sp.setPublishedAddCount(publishedAdds);
+            spRepo.save(sp);
+
+            return new StandardResponse(200,"success",null);
+        }else{
+            return new StandardResponse(500,"You have Reached post count",null);
+        }
+    }
+
+    @Override
+    public StandardResponse publishedAdvertisements() {
+        int userId = authService.getAuthUserId();
+
+        if(!advertisementRepo.existsByUserId(userId)){
+            return new StandardResponse(404,"No published ads",null);
+        }
+        List<AdvertisementEntity> advertisementEntities = advertisementRepo.findAllByUserId(userId);
+        List<AdvertisementDTO> advertisementDTOS = mapper.addEntityToDtoList(advertisementEntities);
+
+        return new StandardResponse(200,"success",advertisementDTOS);
+    }
+
+    @Override
+    public StandardResponse getAllAdvertisements() {
+        List<AdvertisementEntity> advertisementEntities = advertisementRepo.findAll();
+        List<AdvertisementDTO> advertisementDTOS = mapper.addEntityToDtoList(advertisementEntities);
+
+        return new StandardResponse(200,"success",advertisementDTOS);
+    }
+
+    @Override
+    public StandardResponse deleteAdvertisement(Long advertisementId) {
+        ServiceProviderEntity sp = spRepo.findByUser(userRepo.findByUserId(authService.getAuthUserId()));
+
+        advertisementRepo.deleteById(advertisementId);
+        int publishedAdds = sp.getPublishedAddCount();
+        publishedAdds--;
+        sp.setPublishedAddCount(publishedAdds);
+        spRepo.save(sp);
+
+        return new StandardResponse(200,"success",null);
     }
 }

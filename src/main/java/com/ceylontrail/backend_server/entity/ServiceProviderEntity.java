@@ -79,4 +79,9 @@ public class ServiceProviderEntity {
     @Column(name = "subscription_duration_in_days")
     private int subscriptionDurationInDays;
 
+    @Column(name = "published_add_count")
+    private int publishedAddCount;
+
+    @OneToMany(mappedBy = "serviceProvider", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<AdvertisementEntity> advertisements;
 }

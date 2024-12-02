@@ -16,7 +16,8 @@ import java.util.concurrent.TimeUnit;
 @Service
 public class JwtService {
     private static final String SECRET = "6EAFD0F4FBD9384603019E6137ABBD3FBCF70B8D8FCA6D192B16012B0C44E43E022F4F86A5BE0A56DA98996CBE28F1DDB6268D664F0200343266C0E249F6F1D7";
-    private static final long VALIDITY = TimeUnit.MINUTES.toMillis(30);
+    private static final long VALIDITY = TimeUnit.MINUTES.toMillis(180);
+
     public String generateToken(UserDetails userDetails){
         Map<String,String> claims = new HashMap<>();
         claims.put("iss","ceylon-trail ");
@@ -34,23 +35,32 @@ public class JwtService {
         return Keys.hmacShaKeyFor(decodeKey);
     }
 
-
     public String extractUsername(String jwt) {
         Claims claims = getClaims(jwt);
-        return claims.getSubject();
+        if (claims != null){
+            return claims.getSubject();
+        }
+        return null;
     }
 
     private Claims getClaims(String jwt) {
-        return Jwts.parser()
-                .verifyWith(generateKey())
-                .build()
-                .parseSignedClaims(jwt)
-                .getPayload();
+        try {
+            return Jwts.parser()
+                    .verifyWith(generateKey())
+                    .build()
+                    .parseSignedClaims(jwt)
+                    .getPayload();
+        } catch (Exception e) {
+            return null;
+        }
 
     }
 
     public boolean isTokenValid(String jwt) {
         Claims claims = getClaims(jwt);
-        return claims.getExpiration().after(Date.from(Instant.now()));
+        if (claims != null){
+            return claims.getExpiration().after(Date.from(Instant.now()));
+        }
+        return false;
     }
 }

@@ -31,4 +31,8 @@ public interface ServiceProviderRepo extends JpaRepository<ServiceProviderEntity
 
     @Query("SELECT COUNT(sp) FROM ServiceProviderEntity sp WHERE sp.verificationStatus = :status AND sp.verificationStatusUpdatedAt >= :startDate")
     int countRecentBusinessProfiles(VerificationStatusEnum status, LocalDate startDate);
+
+    @Query("SELECT sp FROM ServiceProviderEntity sp WHERE sp.verificationStatus = :status ORDER BY sp.verificationStatusUpdatedAt DESC")
+    List<ServiceProviderEntity> findLatestPending(VerificationStatusEnum status, Pageable pageable);
+
 }

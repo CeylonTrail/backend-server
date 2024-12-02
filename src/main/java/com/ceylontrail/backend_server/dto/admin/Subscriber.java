@@ -7,7 +7,7 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class Subscribers {
+public class Subscriber {
 
     private String serviceName;
     private String serviceType;

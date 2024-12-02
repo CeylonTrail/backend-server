@@ -20,8 +20,8 @@ public class DashboardDTO {
     private int recentReports;
     private double totalRevenue;
     private double recentRevenue;
-    private List<ChartData> Subscriptions;
-    private List<SP> businessProfiles;
-    private List<Subscribers> subscribers;
+    private ChartData subscriptionChartData;
+    private List<SP> pendingBusinessProfiles;
+    private List<Subscriber> recentSubscribers;
 
 }

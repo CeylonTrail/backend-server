@@ -22,13 +22,10 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDate;
-import java.time.Month;
+import java.time.*;
 import java.time.format.TextStyle;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
-import java.util.Objects;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @AllArgsConstructor
@@ -98,12 +95,53 @@ public class AdminServiceIMPL implements AdminService {
         return sp;
     }
 
-    private List<ChartData> getSubscriptionCountsForLastYear() {
-        List<Object[]> results = paymentRepo.countSubscriptionsByMonth(LocalDate.now().minusMonths(12));
+    private ChartData getSubscriptionCountsForLastYear() {
+        YearMonth startMonth = YearMonth.now().minusMonths(11);
+        YearMonth endMonth = YearMonth.now();
+        List<YearMonth> months = new ArrayList<>();
+        for (YearMonth month = startMonth; !month.isAfter(endMonth); month = month.plusMonths(1)) {
+            months.add(month);
+        }
+        List<Object[]> results = paymentRepo.countSubscriptionsByMonth(startMonth.atDay(1));
+        Map<YearMonth, Integer> resultMap = results.stream()
+                .collect(Collectors.toMap(
+                        row -> YearMonth.of(((Number) row[0]).intValue(), ((Number) row[1]).intValue()),
+                        row -> ((Number) row[2]).intValue()
+                ));
+        List<String> time = new ArrayList<>();
+        List<Integer> count = new ArrayList<>();
+        for (YearMonth month : months) {
+            time.add(month.getYear() + "-" + month.getMonth().getDisplayName(TextStyle.SHORT, Locale.ENGLISH));
+            count.add(resultMap.getOrDefault(month, 0));
+        }
+        return new ChartData(time, count);
+    }
+
+
+    private List<SP> getLatestPendingBusinessProfiles(){
+        List<ServiceProviderEntity> results = spRepo.findLatestPending(VerificationStatusEnum.PENDING, PageRequest.of(0, 3));
         return results.stream()
-                .map(row -> {
-                    String formattedTime = row[0] + "-" + Month.of((int) row[1]).getDisplayName(TextStyle.SHORT, Locale.ENGLISH);
-                    return new ChartData(formattedTime, ((Number) row[2]).intValue());
+                .map(this::mapToSP)
+                .toList();
+    }
+
+    private List<Subscriber> getLatestSubscribers() {
+        List<ServiceProviderEntity> results = paymentRepo.findLatestSubscribers(PageRequest.of(0, 6));
+        System.out.println(results);
+        return results.stream()
+                .map(sp -> {
+                    Subscriber subscriber = new Subscriber();
+                    subscriber.setServiceName(sp.getServiceName());
+                    subscriber.setProfilePictureUrl(sp.getUser().getProfilePictureUrl());
+                    if (Objects.equals(sp.getServiceType(), ServiceProviderTypeEnum.ACCOMMODATION))
+                        subscriber.setServiceType(String.valueOf(ServiceProviderTypeEnum.ACCOMMODATION));
+                    else if (Objects.equals(sp.getServiceType(), ServiceProviderTypeEnum.RESTAURANT))
+                        subscriber.setServiceType(String.valueOf(ServiceProviderTypeEnum.RESTAURANT));
+                    else if (Objects.equals(sp.getServiceType(), ServiceProviderTypeEnum.EQUIPMENT))
+                        subscriber.setServiceType(String.valueOf(ServiceProviderTypeEnum.EQUIPMENT));
+                    else
+                        subscriber.setServiceType(String.valueOf(ServiceProviderTypeEnum.OTHER));
+                    return subscriber;
                 })
                 .toList();
     }
@@ -112,17 +150,20 @@ public class AdminServiceIMPL implements AdminService {
     public StandardResponse getDashboard() {
         DashboardDTO dto = new DashboardDTO();
         LocalDate startDate = LocalDate.now().minusDays(30);
-        dto.setTotalUsers(userRepo.countUsers());
-        dto.setTotalTravellers(userRepo.countTravellers());
-        dto.setRecentUsers(userRepo.countRecentUsers(startDate.atStartOfDay()));
-        dto.setTotalBusinessProfiles(spRepo.countBusinessProfiles(VerificationStatusEnum.APPROVED));
-        dto.setRecentBusinessProfiles(spRepo.countRecentBusinessProfiles(VerificationStatusEnum.APPROVED, startDate));
-        dto.setTotalReports(reportRepo.countReports());
-        dto.setRecentReports(reportRepo.countRecentReports(startDate.atStartOfDay()));
-        dto.setTotalRevenue(paymentRepo.calculateTotalRevenue());
-        dto.setRecentRevenue(paymentRepo.calculateRevenueForRecentDays(startDate));
-        dto.setSubscriptions(this.getSubscriptionCountsForLastYear());
-        return null;
+        dto.setTotalUsers(Optional.of(userRepo.countUsers()).orElse(0));
+        dto.setTotalTravellers(Optional.of(userRepo.countTravellers()).orElse(0));
+        dto.setRecentUsers(Optional.of(userRepo.countRecentUsers(startDate.atStartOfDay())).orElse(0));
+        dto.setTotalBusinessProfiles(Optional.of(spRepo.countBusinessProfiles(VerificationStatusEnum.APPROVED)).orElse(0));
+        dto.setRecentBusinessProfiles(Optional.of(spRepo.countRecentBusinessProfiles(VerificationStatusEnum.APPROVED, startDate)).orElse(0));
+        dto.setTotalReports(Optional.of(reportRepo.countReports()).orElse(0));
+        dto.setRecentReports(Optional.of(reportRepo.countRecentReports(startDate.atStartOfDay())).orElse(0));
+        dto.setTotalRevenue(Optional.ofNullable(paymentRepo.calculateTotalRevenue()).orElse(0.0));
+        dto.setRecentRevenue(Optional.ofNullable(paymentRepo.calculateRevenueForRecentDays(startDate)).orElse(0.0));
+        dto.setSubscriptionChartData(this.getSubscriptionCountsForLastYear());
+        System.out.println(dto.getSubscriptionChartData());
+        dto.setPendingBusinessProfiles(this.getLatestPendingBusinessProfiles());
+        dto.setRecentSubscribers(this.getLatestSubscribers());
+        return new StandardResponse(200, "Dashboard fetched successfully", dto);
     }
 
     @Override

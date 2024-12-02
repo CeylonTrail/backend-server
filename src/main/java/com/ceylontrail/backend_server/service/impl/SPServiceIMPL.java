@@ -83,6 +83,7 @@ public class SPServiceIMPL implements SPService {
         sp.setOpeningHours(this.mapJsonToOpeningHours(spSetupDTO.getOpeningHours()));
         sp.setVerificationDocUrl(imageService.uploadImage(spSetupDTO.getVerificationDoc()).getUrl());
         sp.setVerificationStatus(VerificationStatusEnum.PENDING);
+        sp.setVerificationStatusUpdatedAt(LocalDate.now());
         sp.setSubscriptionPlan(this.subscriptionPlanRepo.findBySubscriptionId(2L));
         sp.setSubscriptionDurationInDays(30);
         sp.setSubscriptionPurchaseDate(LocalDate.now());

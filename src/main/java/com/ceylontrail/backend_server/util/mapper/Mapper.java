@@ -3,6 +3,8 @@ package com.ceylontrail.backend_server.util.mapper;
 import com.ceylontrail.backend_server.dto.EventDTO;
 import com.ceylontrail.backend_server.dto.PlaceDTO;
 import com.ceylontrail.backend_server.dto.RegisterDTO;
+import com.ceylontrail.backend_server.dto.advertisement.AdvertisementDTO;
+import com.ceylontrail.backend_server.entity.AdvertisementEntity;
 import com.ceylontrail.backend_server.entity.EventEntity;
 import com.ceylontrail.backend_server.entity.PlaceEntity;
 import com.ceylontrail.backend_server.entity.UserEntity;
@@ -29,5 +31,5 @@ public interface Mapper {
     List<EventDTO> eventListToDtoList(List<EventEntity> eventList);
 
 
-
+    List<AdvertisementDTO> addEntityToDtoList(List<AdvertisementEntity> advertisementEntities);
 }

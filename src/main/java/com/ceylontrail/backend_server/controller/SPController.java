@@ -16,7 +16,7 @@ public class SPController {
     private final SPService spService;
 
     @PostMapping(path = "/setup")
-    public StandardResponse setup(@RequestBody SPSetupDTO spSetupDTO){
+    public StandardResponse setup(@ModelAttribute SPSetupDTO spSetupDTO){
         return this.spService.setup(spSetupDTO);
     }
 

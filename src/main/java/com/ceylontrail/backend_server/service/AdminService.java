@@ -5,6 +5,8 @@ import com.ceylontrail.backend_server.dto.subscription.EditSubscriptionDTO;
 import com.ceylontrail.backend_server.util.StandardResponse;
 
 public interface AdminService {
+    StandardResponse getDashboard();
+
     StandardResponse getTravellers(String search, int pageNumber, int pageSize);
 
     StandardResponse getTraveller(int userId);

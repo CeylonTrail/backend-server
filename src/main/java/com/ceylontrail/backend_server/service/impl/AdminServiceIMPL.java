@@ -1,9 +1,6 @@
 package com.ceylontrail.backend_server.service.impl;
 
-import com.ceylontrail.backend_server.dto.admin.GetSPDTO;
-import com.ceylontrail.backend_server.dto.admin.GetTravellersDTO;
-import com.ceylontrail.backend_server.dto.admin.SP;
-import com.ceylontrail.backend_server.dto.admin.Traveller;
+import com.ceylontrail.backend_server.dto.admin.*;
 import com.ceylontrail.backend_server.dto.subscription.AddSubscriptionDTO;
 import com.ceylontrail.backend_server.dto.subscription.EditSubscriptionDTO;
 import com.ceylontrail.backend_server.dto.subscription.GetSubscriptionDTO;
@@ -14,10 +11,7 @@ import com.ceylontrail.backend_server.entity.UserEntity;
 import com.ceylontrail.backend_server.entity.enums.ServiceProviderTypeEnum;
 import com.ceylontrail.backend_server.entity.enums.VerificationStatusEnum;
 import com.ceylontrail.backend_server.exception.NotFoundException;
-import com.ceylontrail.backend_server.repo.PostRepo;
-import com.ceylontrail.backend_server.repo.ServiceProviderRepo;
-import com.ceylontrail.backend_server.repo.SubscriptionPlanRepo;
-import com.ceylontrail.backend_server.repo.UserRepo;
+import com.ceylontrail.backend_server.repo.*;
 import com.ceylontrail.backend_server.service.AdminService;
 import com.ceylontrail.backend_server.service.ImageService;
 import com.ceylontrail.backend_server.service.PostService;
@@ -28,8 +22,12 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
+import java.time.Month;
+import java.time.format.TextStyle;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Objects;
 
 @Service
@@ -42,6 +40,8 @@ public class AdminServiceIMPL implements AdminService {
 
     private final UserRepo userRepo;
     private final PostRepo postRepo;
+    private final ReportRepo reportRepo;
+    private final PaymentRepo paymentRepo;
     private final ServiceProviderRepo spRepo;
     private final SubscriptionPlanRepo subscriptionRepo;
 
@@ -96,6 +96,33 @@ public class AdminServiceIMPL implements AdminService {
                 sp.setVerificationStatus(String.valueOf(VerificationStatusEnum.APPROVED));
         }
         return sp;
+    }
+
+    private List<ChartData> getSubscriptionCountsForLastYear() {
+        List<Object[]> results = paymentRepo.countSubscriptionsByMonth(LocalDate.now().minusMonths(12));
+        return results.stream()
+                .map(row -> {
+                    String formattedTime = row[0] + "-" + Month.of((int) row[1]).getDisplayName(TextStyle.SHORT, Locale.ENGLISH);
+                    return new ChartData(formattedTime, ((Number) row[2]).intValue());
+                })
+                .toList();
+    }
+
+    @Override
+    public StandardResponse getDashboard() {
+        DashboardDTO dto = new DashboardDTO();
+        LocalDate startDate = LocalDate.now().minusDays(30);
+        dto.setTotalUsers(userRepo.countUsers());
+        dto.setTotalTravellers(userRepo.countTravellers());
+        dto.setRecentUsers(userRepo.countRecentUsers(startDate.atStartOfDay()));
+        dto.setTotalBusinessProfiles(spRepo.countBusinessProfiles(VerificationStatusEnum.APPROVED));
+        dto.setRecentBusinessProfiles(spRepo.countRecentBusinessProfiles(VerificationStatusEnum.APPROVED, startDate));
+        dto.setTotalReports(reportRepo.countReports());
+        dto.setRecentReports(reportRepo.countRecentReports(startDate.atStartOfDay()));
+        dto.setTotalRevenue(paymentRepo.calculateTotalRevenue());
+        dto.setRecentRevenue(paymentRepo.calculateRevenueForRecentDays(startDate));
+        dto.setSubscriptions(this.getSubscriptionCountsForLastYear());
+        return null;
     }
 
     @Override
@@ -198,5 +225,7 @@ public class AdminServiceIMPL implements AdminService {
         subscriptionRepo.delete(subscription);
         return new StandardResponse(200, "Subscription plan deleted successfully", null);
     }
+
+
 
 }

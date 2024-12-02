@@ -55,6 +55,9 @@ public class ServiceProviderEntity {
     @Column(name = "verification_doc_url")
     private String verificationDocUrl;
 
+    @Column(name = "verification_status_updated_at")
+    private LocalDate verificationStatusUpdatedAt;
+
     @ElementCollection
     @CollectionTable(name = "social_media_links", joinColumns = @JoinColumn(name = "service_provider_id"))
     private List<SocialMediaLinks> socialMediaLinks;

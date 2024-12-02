@@ -4,13 +4,19 @@ import com.ceylontrail.backend_server.dto.admin.GetSPDTO;
 import com.ceylontrail.backend_server.dto.admin.GetTravellersDTO;
 import com.ceylontrail.backend_server.dto.admin.SP;
 import com.ceylontrail.backend_server.dto.admin.Traveller;
+import com.ceylontrail.backend_server.dto.subscription.AddSubscriptionDTO;
+import com.ceylontrail.backend_server.dto.subscription.EditSubscriptionDTO;
+import com.ceylontrail.backend_server.dto.subscription.GetSubscriptionDTO;
 import com.ceylontrail.backend_server.entity.PostEntity;
 import com.ceylontrail.backend_server.entity.ServiceProviderEntity;
+import com.ceylontrail.backend_server.entity.SubscriptionPlanEntity;
 import com.ceylontrail.backend_server.entity.UserEntity;
 import com.ceylontrail.backend_server.entity.enums.ServiceProviderTypeEnum;
 import com.ceylontrail.backend_server.entity.enums.VerificationStatusEnum;
+import com.ceylontrail.backend_server.exception.NotFoundException;
 import com.ceylontrail.backend_server.repo.PostRepo;
 import com.ceylontrail.backend_server.repo.ServiceProviderRepo;
+import com.ceylontrail.backend_server.repo.SubscriptionPlanRepo;
 import com.ceylontrail.backend_server.repo.UserRepo;
 import com.ceylontrail.backend_server.service.AdminService;
 import com.ceylontrail.backend_server.service.ImageService;
@@ -37,6 +43,15 @@ public class AdminServiceIMPL implements AdminService {
     private final UserRepo userRepo;
     private final PostRepo postRepo;
     private final ServiceProviderRepo spRepo;
+    private final SubscriptionPlanRepo subscriptionRepo;
+
+    private SubscriptionPlanEntity initialSubscriptionPlanCheck(Long subscriptionId) {
+        SubscriptionPlanEntity subscription = subscriptionRepo.findBySubscriptionId(subscriptionId);
+        if (subscription == null) {
+            throw new NotFoundException("Subscription plan not found");
+        }
+        return subscription;
+    }
 
     private Traveller mapToTraveller(UserEntity user) {
         Traveller traveller = new Traveller();
@@ -142,4 +157,46 @@ public class AdminServiceIMPL implements AdminService {
         postRepo.delete(post);
         return new StandardResponse(200, "Post deleted successfully", null);
     }
+
+    @Override
+    public StandardResponse addSubscription(AddSubscriptionDTO subscriptionDTO) {
+        SubscriptionPlanEntity subscription = new SubscriptionPlanEntity();
+        subscription.setName(subscriptionDTO.getName());
+        subscription.setDescription(subscriptionDTO.getDescription());
+        subscription.setPrice(subscriptionDTO.getPrice());
+        subscription.setAdCount(subscriptionDTO.getAdCount());
+        subscriptionRepo.save(subscription);
+        return new StandardResponse(200, "Subscription plan added successfully", null);
+    }
+
+    @Override
+    public StandardResponse getSubscription(Long subscriptionId) {
+        SubscriptionPlanEntity subscription = this.initialSubscriptionPlanCheck(subscriptionId);
+        GetSubscriptionDTO dto = new GetSubscriptionDTO();
+        dto.setSubscriptionId(subscriptionId);
+        dto.setName(subscription.getName());
+        dto.setDescription(subscription.getDescription());
+        dto.setPrice(subscription.getPrice());
+        dto.setAdCount(subscription.getAdCount());
+        return new StandardResponse(200, "Subscription plan fetched successfully", dto);
+    }
+
+    @Override
+    public StandardResponse editSubscription(Long subscriptionId, EditSubscriptionDTO subscriptionDTO) {
+        SubscriptionPlanEntity subscription = this.initialSubscriptionPlanCheck(subscriptionId);
+        subscription.setName(subscriptionDTO.getName());
+        subscription.setDescription(subscriptionDTO.getDescription());
+        subscription.setPrice(subscriptionDTO.getPrice());
+        subscription.setAdCount(subscriptionDTO.getAdCount());
+        subscriptionRepo.save(subscription);
+        return new StandardResponse(200, "Subscription plan edited successfully", null);
+    }
+
+    @Override
+    public StandardResponse deleteSubscription(Long subscriptionId) {
+        SubscriptionPlanEntity subscription = this.initialSubscriptionPlanCheck(subscriptionId);
+        subscriptionRepo.delete(subscription);
+        return new StandardResponse(200, "Subscription plan deleted successfully", null);
+    }
+
 }

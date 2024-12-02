@@ -7,6 +7,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @Entity
@@ -61,5 +62,18 @@ public class ServiceProviderEntity {
     @ElementCollection
     @CollectionTable(name = "opening_hours", joinColumns = @JoinColumn(name = "service_provider_id"))
     private List<OpeningHours> openingHours;
+
+    @ManyToOne
+    @JoinColumn(name = "subscription_id")
+    private SubscriptionPlanEntity subscriptionPlan;
+
+    @Column(name = "subscription_purchase_date")
+    private LocalDate subscriptionPurchaseDate;
+
+    @Column(name = "subscription_expiry_date")
+    private LocalDate subscriptionExpiryDate;
+
+    @Column(name = "subscription_duration_in_days")
+    private int subscriptionDurationInDays;
 
 }

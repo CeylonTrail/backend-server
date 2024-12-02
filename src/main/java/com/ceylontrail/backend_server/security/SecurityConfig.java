@@ -34,7 +34,7 @@ public class SecurityConfig {
                                 .requestMatchers("/api/v1/auth/**").permitAll()
                                 .requestMatchers("/api/v1/post/community-feed/public").permitAll() 
                                 .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")
-                                .anyRequest().authenticated()
+                                .anyRequest().permitAll()
                 )
                 //.formLogin(AbstractAuthenticationFilterConfigurer::permitAll)
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)

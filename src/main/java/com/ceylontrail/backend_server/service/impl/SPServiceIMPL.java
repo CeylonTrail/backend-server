@@ -15,11 +15,14 @@ import com.ceylontrail.backend_server.util.StandardResponse;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @Transactional
@@ -34,6 +37,41 @@ public class SPServiceIMPL implements SPService {
     private final PaymentRepo paymentRepo;
     private final SubscriptionPlanRepo subscriptionPlanRepo;
 
+    private List<OpeningHours> mapJsonToOpeningHours(String json) {
+        try {
+            List<OpeningHours> openingHoursList = new ArrayList<>();
+            JSONArray jsonArray = new JSONArray(json);
+            for (int i = 0; i < jsonArray.length(); i++) {
+                JSONObject jsonObject = jsonArray.getJSONObject(i);
+                String day = jsonObject.getString("day");
+                String startTime = jsonObject.getString("startTime");
+                String endTime = jsonObject.getString("endTime");
+                OpeningHours openingHour = new OpeningHours(day, startTime, endTime);
+                openingHoursList.add(openingHour);
+            }
+            return openingHoursList;
+        } catch (JSONException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private List<SocialMediaLinks> mapJsonToSocialMediaLinks(String json) {
+        try {
+            List<SocialMediaLinks> socialMediaLinksList = new ArrayList<>();
+            JSONArray jsonArray = new JSONArray(json);
+            for (int i = 0; i < jsonArray.length(); i++) {
+                JSONObject jsonObject = jsonArray.getJSONObject(i);
+                String name = jsonObject.getString("name");
+                String link = jsonObject.getString("link");
+                SocialMediaLinks socialMediaLink = new SocialMediaLinks(name, link);
+                socialMediaLinksList.add(socialMediaLink);
+            }
+            return socialMediaLinksList;
+        } catch (JSONException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     @Override
     @Transactional
     public StandardResponse setup(SPSetupDTO spSetupDTO) {
@@ -42,10 +80,7 @@ public class SPServiceIMPL implements SPService {
         sp.setDescription(spSetupDTO.getDescription());
         sp.setContactNumber(spSetupDTO.getContactNumber());
         sp.setDescription(spSetupDTO.getDescription());
-        List<OpeningHours> openingHours = spSetupDTO.getOpeningHours().stream()
-                .map(dto -> new OpeningHours(dto.getDay(), dto.getStartTime(), dto.getEndTime()))
-                .toList();
-        sp.setOpeningHours(openingHours);
+        sp.setOpeningHours(this.mapJsonToOpeningHours(spSetupDTO.getOpeningHours()));
         sp.setVerificationDocUrl(imageService.uploadImage(spSetupDTO.getVerificationDoc()).getUrl());
         sp.setVerificationStatus(VerificationStatusEnum.PENDING);
         sp.setSubscriptionPlan(this.subscriptionPlanRepo.findBySubscriptionId(2L));
@@ -53,12 +88,8 @@ public class SPServiceIMPL implements SPService {
         sp.setSubscriptionPurchaseDate(LocalDate.now());
         sp.setSubscriptionExpiryDate(LocalDate.now().plusDays(30));
         sp.setIsSetupComplete("YES");
-        if (spSetupDTO.getSocialMediaLinks() != null) {
-            List<SocialMediaLinks> socialMediaLinks = spSetupDTO.getSocialMediaLinks().stream()
-                    .map(dto -> new SocialMediaLinks(dto.getName(), dto.getLink()))
-                    .collect(Collectors.toList());
-            sp.setSocialMediaLinks(socialMediaLinks);
-        }
+        if (spSetupDTO.getSocialMediaLinks() != null)
+            sp.setSocialMediaLinks(this.mapJsonToSocialMediaLinks(spSetupDTO.getSocialMediaLinks()));
         if (spSetupDTO.getProfilePicture() != null) {
             user.setProfilePictureUrl(imageService.uploadImage(spSetupDTO.getProfilePicture()).getUrl());
             userRepo.save(user);

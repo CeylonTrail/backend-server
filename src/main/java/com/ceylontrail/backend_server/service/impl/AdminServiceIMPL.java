@@ -202,7 +202,7 @@ public class AdminServiceIMPL implements AdminService {
         dto.setLastname(sp.getUser().getLastname());
         dto.setEmail(sp.getUser().getEmail());
         dto.setUsername(sp.getUser().getUsername());
-        dto.setCreatedAt(sp.getUser().getCreatedAt().toString());
+        dto.setCreatedAt(sp.getUser().getCreatedAt().toLocalDate().toString());
         dto.setAccountStatus(sp.getUser().getActivationToken() == null ? "ACTIVATED" : "NOT ACTIVATED");
         dto.setSetupStatus(sp.getIsSetupComplete());
         if (Objects.equals(dto.getSetupStatus(), "NO")) {
@@ -238,7 +238,29 @@ public class AdminServiceIMPL implements AdminService {
 
     @Override
     public StandardResponse getPendingVerificationSP(Long spId) {
-        return null;
+        ServiceProviderEntity sp = spRepo.findByServiceProviderId(spId);
+        GetPendingSP dto = new GetPendingSP();
+        dto.setServiceProviderId(sp.getServiceProviderId());
+        dto.setProfilePictureUrl(sp.getUser().getProfilePictureUrl());
+        dto.setCoverPictureUrl(sp.getCoverPictureUrl());
+        dto.setServiceName(sp.getServiceName());
+        dto.setServiceType(this.mapServiceTypeToString(sp.getServiceType()));
+        dto.setDescription(sp.getDescription());
+        dto.setContactNumber(sp.getContactNumber());
+        dto.setAddress(sp.getAddress());
+        dto.setFirstname(sp.getUser().getFirstname());
+        dto.setLastname(sp.getUser().getLastname());
+        dto.setEmail(sp.getUser().getEmail());
+        dto.setUsername(sp.getUser().getUsername());
+        dto.setCreatedAt(sp.getUser().getCreatedAt().toLocalDate().toString());
+        dto.setAccountStatus(sp.getUser().getActivationToken() == null ? "ACTIVATED" : "NOT ACTIVATED");
+        dto.setVerificationStatus(this.mapVerificationStatusToString(sp.getVerificationStatus()));
+        dto.setVerificationStatusUpdatedAt(sp.getVerificationStatusUpdatedAt().toString());
+        dto.setVerificationDocUrl(sp.getVerificationDocUrl());
+        dto.setSubscriptionPlan(sp.getSubscriptionPlan().getName());
+        dto.setSubscriptionPurchaseDate(sp.getSubscriptionPurchaseDate().toString());
+        dto.setSubscriptionExpiryDate(sp.getSubscriptionExpiryDate().toString());
+        return new StandardResponse(200, "Pending SP fetched successfully", dto);
     }
 
     @Override

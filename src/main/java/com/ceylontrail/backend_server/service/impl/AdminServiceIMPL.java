@@ -174,11 +174,6 @@ public class AdminServiceIMPL implements AdminService {
     }
 
     @Override
-    public StandardResponse getTraveller(int userId) {
-        return null;
-    }
-
-    @Override
     public StandardResponse deleteTraveller(int userId) {
         UserEntity user = userService.initialUserCheck(userId);
         for (PostEntity post : user.getLikes()) {
@@ -230,6 +225,20 @@ public class AdminServiceIMPL implements AdminService {
             dto.setSubscriptionExpiryDate(sp.getSubscriptionExpiryDate().toString());
         }
         return new StandardResponse(200, "SP fetched successfully", dto);
+    }
+
+    @Override
+    public StandardResponse getPendingVerificationSPs() {
+        GetSPsDTO dto = new GetSPsDTO();
+        List<SP> sps = new ArrayList<>();
+        for (ServiceProviderEntity serviceProvider : spRepo.findALLPending(VerificationStatusEnum.PENDING)) { sps.add(this.mapToSP(serviceProvider)); }
+        dto.setSPs(sps);
+        return new StandardResponse(200, "SPs fetched successfully", dto);
+    }
+
+    @Override
+    public StandardResponse getPendingVerificationSP(Long spId) {
+        return null;
     }
 
     @Override
@@ -290,7 +299,5 @@ public class AdminServiceIMPL implements AdminService {
         subscriptionRepo.delete(subscription);
         return new StandardResponse(200, "Subscription plan deleted successfully", null);
     }
-
-
 
 }

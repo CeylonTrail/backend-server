@@ -29,7 +29,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         Set<String> publicEndpoints = Set.of(
                 "/api/v1/auth/",
-                "/api/v1/post/community-feed/public"
+                "/api/v1/post/community-feed/public",
+                "/login",
+                "/swagger-ui/"
         );
 
         String requestURI = request.getRequestURI();

@@ -1,16 +1,19 @@
 package com.ceylontrail.backend_server.service.impl;
 
 import com.ceylontrail.backend_server.dto.advertisement.AdvertisementDTO;
+import com.ceylontrail.backend_server.dto.advertisement.EditAdDTO;
+import com.ceylontrail.backend_server.dto.advertisement.GetAdDTO;
 import com.ceylontrail.backend_server.dto.sp.SPSetupDTO;
 import com.ceylontrail.backend_server.dto.sp.SubscriptionPurchaseDTO;
 import com.ceylontrail.backend_server.entity.*;
 import com.ceylontrail.backend_server.entity.enums.VerificationStatusEnum;
+import com.ceylontrail.backend_server.exception.NotFoundException;
+import com.ceylontrail.backend_server.exception.UnauthorizedException;
 import com.ceylontrail.backend_server.repo.*;
 import com.ceylontrail.backend_server.service.AuthService;
 import com.ceylontrail.backend_server.service.ImageService;
 import com.ceylontrail.backend_server.service.SPService;
 import com.ceylontrail.backend_server.util.StandardResponse;
-import com.ceylontrail.backend_server.util.mapper.Mapper;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
@@ -32,13 +35,27 @@ public class SPServiceIMPL implements SPService {
     private final ImageService imageService;
 
     private final UserRepo userRepo;
-    private final ServiceProviderRepo spRepo;
     private final PaymentRepo paymentRepo;
+    private final AdvertisementRepo adRepo;
+    private final ServiceProviderRepo spRepo;
     private final SubscriptionPlanRepo subscriptionPlanRepo;
-    private final AdvertisementRepo advertisementRepo;
 
-    private final Mapper mapper;
+    private AdvertisementEntity initialAdCheck(Long advertisementId) {
+        AdvertisementEntity ad = adRepo.findByAdvertisementId(advertisementId);
+        if (ad == null) {
+            throw new NotFoundException("Advertisement does not exist");
+        }
+        return ad;
+    }
 
+    private AdvertisementEntity initialAdAndUserCheck(Long advertisementId) {
+        AdvertisementEntity ad = this.initialAdCheck(advertisementId);
+        UserEntity loggedUser = userRepo.findByUserId(authService.getAuthUserId());
+        if (loggedUser.getUserId() != ad.getServiceProvider().getUser().getUserId()) {
+            throw new UnauthorizedException("Advertisement author is not logged in");
+        }
+        return ad;
+    }
 
     private List<OpeningHours> mapJsonToOpeningHours(String json) {
         try {
@@ -75,6 +92,23 @@ public class SPServiceIMPL implements SPService {
         }
     }
 
+    private GetAdDTO mapToGetAdDTO(AdvertisementEntity ad) {
+        GetAdDTO dto = new GetAdDTO();
+        dto.setAdvertisementId(ad.getAdvertisementId());
+        dto.setTitle(ad.getTitle());
+        dto.setDescription(ad.getDescription());
+        dto.setRateType(ad.getRateType());
+        dto.setRate(ad.getRate());
+        dto.setIsActive(ad.getIsActive());
+        dto.setCreatedAt(ad.getCreatedAt().toLocalDate().toString());
+        List<String> images = new ArrayList<>();
+        for (ImageEntity image : ad.getImages()) {
+            images.add(image.getUrl());
+        }
+        dto.setImages(images);
+        return dto;
+    }
+
     @Override
     @Transactional
     public StandardResponse setup(SPSetupDTO spSetupDTO) {
@@ -82,11 +116,12 @@ public class SPServiceIMPL implements SPService {
         ServiceProviderEntity sp = user.getServiceProvider();
         sp.setDescription(spSetupDTO.getDescription());
         sp.setContactNumber(spSetupDTO.getContactNumber());
-        sp.setDescription(spSetupDTO.getDescription());
+        sp.setAddress(spSetupDTO.getAddress());
         sp.setOpeningHours(this.mapJsonToOpeningHours(spSetupDTO.getOpeningHours()));
         sp.setVerificationDocUrl(imageService.uploadImage(spSetupDTO.getVerificationDoc()).getUrl());
         sp.setVerificationStatus(VerificationStatusEnum.PENDING);
         sp.setVerificationStatusUpdatedAt(LocalDate.now());
+        sp.setPublishedAddCount(0);
         sp.setSubscriptionPlan(this.subscriptionPlanRepo.findBySubscriptionId(2L));
         sp.setSubscriptionDurationInDays(30);
         sp.setSubscriptionPurchaseDate(LocalDate.now());
@@ -126,75 +161,126 @@ public class SPServiceIMPL implements SPService {
     }
 
     @Override
+    @Transactional
     public void handleExpiredSubscriptions() {
         List<ServiceProviderEntity> expiredSubscriptions = spRepo.findBySubscriptionExpiryDateBefore(LocalDate.now());
         for (ServiceProviderEntity sp : expiredSubscriptions) {
+            List<AdvertisementEntity> adList = adRepo.findByServiceProvider(sp);
+            for (AdvertisementEntity ad : adList) {
+                ad.setIsActive("NO");
+                adRepo.save(ad);
+            }
             sp.setSubscriptionPlan(subscriptionPlanRepo.findBySubscriptionId(1L));
             sp.setSubscriptionPurchaseDate(null);
             sp.setSubscriptionDurationInDays(0);
             sp.setSubscriptionExpiryDate(null);
+            sp.setPublishedAddCount(0);
             spRepo.save(sp);
         }
     }
 
     @Override
-    public StandardResponse createAdvertisement(AdvertisementDTO advertisementDTO) {
+    @Transactional
+    public StandardResponse createAdvertisement(AdvertisementDTO adDTO) {
         ServiceProviderEntity sp = spRepo.findByUser(userRepo.findByUserId(authService.getAuthUserId()));
-        int publishedAdds = sp.getPublishedAddCount();
-        int addCount = sp.getSubscriptionPlan().getAdCount();
-        if(publishedAdds<addCount){
-            AdvertisementEntity advertisement = new AdvertisementEntity(
-                    advertisementDTO.getTitle(),
-                    advertisementDTO.getDescription(),
-                    advertisementDTO.getRateType(),
-                    advertisementDTO.getRate(),
-                    advertisementDTO.getDiscount()
-
-            );
-            advertisement.setServiceProvider(sp);
-            advertisement.setUserId(authService.getAuthUserId());
-            advertisementRepo.save(advertisement);
-            publishedAdds++;
-            sp.setPublishedAddCount(publishedAdds);
-            spRepo.save(sp);
-
-            return new StandardResponse(200,"success",null);
-        }else{
-            return new StandardResponse(500,"You have Reached post count",null);
+        if (sp.getVerificationStatus() != VerificationStatusEnum.APPROVED)
+            return new StandardResponse(400,"Account need to be verified",null);
+        if (sp.getPublishedAddCount() >= sp.getSubscriptionPlan().getAdCount())
+            return new StandardResponse(400,"Maximum advertisement count reached",null);
+        AdvertisementEntity ad = new AdvertisementEntity();
+        ad.setServiceProvider(sp);
+        ad.setTitle(adDTO.getTitle());
+        ad.setDescription(adDTO.getDescription());
+        ad.setRateType(adDTO.getRateType());
+        ad.setRate(adDTO.getRate());
+        ad.setIsActive("YES");
+        adRepo.save(ad);
+        if (adDTO.getImages() != null) {
+            ad.setImages(imageService.UploadAdImages(ad, adDTO.getImages()));
+            adRepo.save(ad);
         }
-    }
-
-    @Override
-    public StandardResponse publishedAdvertisements() {
-        int userId = authService.getAuthUserId();
-
-        if(!advertisementRepo.existsByUserId(userId)){
-            return new StandardResponse(404,"No published ads",null);
-        }
-        List<AdvertisementEntity> advertisementEntities = advertisementRepo.findAllByUserId(userId);
-        List<AdvertisementDTO> advertisementDTOS = mapper.addEntityToDtoList(advertisementEntities);
-
-        return new StandardResponse(200,"success",advertisementDTOS);
-    }
-
-    @Override
-    public StandardResponse getAllAdvertisements() {
-        List<AdvertisementEntity> advertisementEntities = advertisementRepo.findAll();
-        List<AdvertisementDTO> advertisementDTOS = mapper.addEntityToDtoList(advertisementEntities);
-
-        return new StandardResponse(200,"success",advertisementDTOS);
-    }
-
-    @Override
-    public StandardResponse deleteAdvertisement(Long advertisementId) {
-        ServiceProviderEntity sp = spRepo.findByUser(userRepo.findByUserId(authService.getAuthUserId()));
-
-        advertisementRepo.deleteById(advertisementId);
-        int publishedAdds = sp.getPublishedAddCount();
-        publishedAdds--;
-        sp.setPublishedAddCount(publishedAdds);
+        sp.setPublishedAddCount(sp.getPublishedAddCount() + 1);
         spRepo.save(sp);
-
-        return new StandardResponse(200,"success",null);
+        return new StandardResponse(200, "Advertisement created successfully", null);
     }
+
+    @Override
+    public StandardResponse getAdvertisement(Long advertisementId) {
+        AdvertisementEntity ad = this.initialAdCheck(advertisementId);
+        GetAdDTO dto = this.mapToGetAdDTO(ad);
+        return new StandardResponse(200,"Advertisement fetched successfully", dto);
+    }
+
+    @Override
+    public StandardResponse getUserAdvertisements() {
+        List<AdvertisementEntity> adList = adRepo.findByServiceProvider(spRepo.findByUser(userRepo.findByUserId(authService.getAuthUserId())));
+        List<GetAdDTO> dto  = new ArrayList<>();
+        for (AdvertisementEntity ad : adList) {
+            dto.add(this.mapToGetAdDTO(ad));
+        }
+        return new StandardResponse(200,"User advertisements fetched successfully", dto);
+    }
+
+    @Override
+    public StandardResponse getAllActiveAdvertisements() {
+        List<GetAdDTO> dto  = new ArrayList<>();
+        for (AdvertisementEntity ad : adRepo.findAllActiveAdvertisements()) {
+            dto.add(this.mapToGetAdDTO(ad));
+        }
+        return new StandardResponse(200,"All advertisements fetched successfully", dto);
+    }
+
+    @Override
+    public StandardResponse editAdvertisement(Long advertisementId, EditAdDTO adDTO) {
+        AdvertisementEntity ad = this.initialAdAndUserCheck(advertisementId);
+        ad.setTitle(adDTO.getTitle());
+        ad.setDescription(adDTO.getDescription());
+        ad.setRateType(adDTO.getRateType());
+        ad.setRate(adDTO.getRate());
+        adRepo.save(ad);
+        return new StandardResponse(200, "Advertisement updated successfully", null);
+    }
+
+    @Override
+    @Transactional
+    public StandardResponse deleteAdvertisement(Long advertisementId) {
+        AdvertisementEntity ad = this.initialAdAndUserCheck(advertisementId);
+        imageService.deleteAdImages(ad.getImages());
+        ServiceProviderEntity sp = ad.getServiceProvider();
+        sp.setPublishedAddCount(sp.getPublishedAddCount() - 1);
+        spRepo.save(sp);
+        adRepo.delete(ad);
+        return new StandardResponse(200,"Advertisement deleted successfully",null);
+    }
+
+    @Override
+    @Transactional
+    public StandardResponse setActive(Long advertisementId) {
+        AdvertisementEntity ad = this.initialAdAndUserCheck(advertisementId);
+        ServiceProviderEntity sp = ad.getServiceProvider();
+        if (sp.getPublishedAddCount() >= sp.getSubscriptionPlan().getAdCount())
+            return new StandardResponse(400,"Maximum advertisement count reached",null);
+        if (ad.getIsActive().equals("YES"))
+            return new StandardResponse(400,"Advertisement is already active",null);
+        ad.setIsActive("YES");
+        adRepo.save(ad);
+        sp.setPublishedAddCount(sp.getPublishedAddCount() + 1);
+        spRepo.save(sp);
+        return new StandardResponse(200, "Advertisement is active now", null);
+    }
+
+    @Override
+    @Transactional
+    public StandardResponse setInactive(Long advertisementId) {
+        AdvertisementEntity ad = this.initialAdAndUserCheck(advertisementId);
+        ServiceProviderEntity sp = ad.getServiceProvider();
+        if (ad.getIsActive().equals("NO"))
+            return new StandardResponse(400,"Advertisement is already inactive",null);
+        ad.setIsActive("NO");
+        adRepo.save(ad);
+        sp.setPublishedAddCount(sp.getPublishedAddCount() - 1);
+        spRepo.save(sp);
+        return new StandardResponse(200, "Advertisement is inactive now", null);
+    }
+
 }

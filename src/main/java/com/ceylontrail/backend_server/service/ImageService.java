@@ -1,5 +1,6 @@
 package com.ceylontrail.backend_server.service;
 
+import com.ceylontrail.backend_server.entity.AdvertisementEntity;
 import com.ceylontrail.backend_server.entity.ImageEntity;
 import com.ceylontrail.backend_server.entity.PostEntity;
 import org.springframework.core.io.Resource;
@@ -12,11 +13,15 @@ public interface ImageService {
 
     void deleteImage(ImageEntity image);
 
-    List<ImageEntity> UploadPostImages(PostEntity post, List<MultipartFile> images);
+    List<ImageEntity> UploadPostImages(PostEntity post, List<MultipartFile> files);
 
     void deletePostImages(List<ImageEntity> images);
 
     Resource getImageResource(String filename);
 
     List<String> getImageUrlsByUserId(int userId);
+
+    List<ImageEntity> UploadAdImages(AdvertisementEntity ad, List<MultipartFile> files);
+
+    void deleteAdImages(List<ImageEntity> images);
 }

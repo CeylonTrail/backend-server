@@ -12,14 +12,6 @@ import java.util.List;
 @AllArgsConstructor
 public class GetTravellersDTO {
 
-    private int pageNumber;
-
-    private int totalPages;
-
-    private int totalElements;
-
-    private int pageSize;
-
     private List<Traveller> travellers = new ArrayList<>();
 
 }

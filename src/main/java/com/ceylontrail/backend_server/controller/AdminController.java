@@ -1,5 +1,6 @@
 package com.ceylontrail.backend_server.controller;
 
+import com.ceylontrail.backend_server.dto.admin.UpdateVerificationDTO;
 import com.ceylontrail.backend_server.dto.subscription.AddSubscriptionDTO;
 import com.ceylontrail.backend_server.dto.subscription.EditSubscriptionDTO;
 import com.ceylontrail.backend_server.service.AdminService;
@@ -33,11 +34,16 @@ public class AdminController {
     @DeleteMapping("/user/sp/{userId}")
     public StandardResponse deleteSP(@PathVariable int userId) { return this.adminService.deleteSP(userId); }
 
-    @GetMapping("/user/sp/pending-verification")
-    public StandardResponse getPendingVerificationSPs() { return this.adminService.getPendingVerificationSPs(); }
+    @GetMapping("/user/sp/verification")
+    public StandardResponse getAllVerificationSPs() { return this.adminService.getAllVerificationSPs(); }
 
-    @GetMapping("/user/sp/pending-verification/{spId}")
-    public StandardResponse getPendingVerificationSPs(@PathVariable Long spId) { return this.adminService.getPendingVerificationSP(spId); }
+    @GetMapping("/user/sp/verification/{spId}")
+    public StandardResponse getVerificationSP(@PathVariable Long spId) { return this.adminService.getVerificationSP(spId); }
+
+    @PutMapping("/user/sp/verification/{spId}")
+    public StandardResponse updateVerificationSP(@PathVariable Long spId, @RequestBody UpdateVerificationDTO updateVerificationDTO) {
+        return this.adminService.updateVerificationSP(spId, updateVerificationDTO);
+    }
 
     @DeleteMapping("/post/{postId}")
     public StandardResponse deletePost(@PathVariable Long postId) { return this.adminService.deletePost(postId); }

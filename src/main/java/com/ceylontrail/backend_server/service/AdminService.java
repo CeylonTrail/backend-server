@@ -9,8 +9,6 @@ public interface AdminService {
 
     StandardResponse getTravellers();
 
-    StandardResponse getTraveller(int userId);
-
     StandardResponse deleteTraveller(int userId);
 
     StandardResponse getSPs();
@@ -18,6 +16,10 @@ public interface AdminService {
     StandardResponse getSP(Long spId);
 
     StandardResponse deleteSP(int userId);
+
+    StandardResponse getPendingVerificationSPs();
+
+    StandardResponse getPendingVerificationSP(Long spId);
 
     StandardResponse deletePost(Long postId);
 

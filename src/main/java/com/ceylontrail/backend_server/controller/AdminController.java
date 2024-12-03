@@ -16,63 +16,42 @@ public class AdminController {
     private final AdminService adminService;
 
     @GetMapping("/dashboard")
-    public StandardResponse getDashboard() {
-        return adminService.getDashboard();
-    }
+    public StandardResponse getDashboard() { return adminService.getDashboard(); }
 
     @GetMapping("/user/traveller")
-    public StandardResponse getTravellers(){
-        return adminService.getTravellers();
-    }
+    public StandardResponse getTravellers(){ return adminService.getTravellers(); }
 
     @GetMapping("/user/sp")
-    public StandardResponse getSPs() {
-        return this.adminService.getSPs();
-    }
-
-    @GetMapping("/user/traveller/{userId}")
-    public StandardResponse getTraveller(@PathVariable int userId) {
-        return this.adminService.getTraveller(userId);
-    }
+    public StandardResponse getSPs() { return this.adminService.getSPs(); }
 
     @DeleteMapping("/user/traveller/{userId}")
-    public StandardResponse deleteTraveller(@PathVariable int userId) {
-        return this.adminService.deleteTraveller(userId);
-    }
+    public StandardResponse deleteTraveller(@PathVariable int userId) { return this.adminService.deleteTraveller(userId); }
 
     @GetMapping("/user/sp/{spId}")
-    public StandardResponse getSP(@PathVariable Long spId) {
-        return this.adminService.getSP(spId);
-    }
+    public StandardResponse getSP(@PathVariable Long spId) { return this.adminService.getSP(spId); }
 
     @DeleteMapping("/user/sp/{userId}")
-    public StandardResponse deleteSP(@PathVariable int userId) {
-        return this.adminService.deleteSP(userId);
-    }
+    public StandardResponse deleteSP(@PathVariable int userId) { return this.adminService.deleteSP(userId); }
+
+    @GetMapping("/user/sp/pending-verification")
+    public StandardResponse getPendingVerificationSPs() { return this.adminService.getPendingVerificationSPs(); }
+
+    @GetMapping("/user/sp/pending-verification/{spId}")
+    public StandardResponse getPendingVerificationSPs(@PathVariable Long spId) { return this.adminService.getPendingVerificationSP(spId); }
 
     @DeleteMapping("/post/{postId}")
-    public StandardResponse deletePost(@PathVariable Long postId) {
-        return this.adminService.deletePost(postId);
-    }
+    public StandardResponse deletePost(@PathVariable Long postId) { return this.adminService.deletePost(postId); }
 
     @PostMapping("/subscription")
-    public StandardResponse addSubscription(@RequestBody AddSubscriptionDTO subscriptionDTO) {
-        return this.adminService.addSubscription(subscriptionDTO);
-    }
+    public StandardResponse addSubscription(@RequestBody AddSubscriptionDTO subscriptionDTO) { return this.adminService.addSubscription(subscriptionDTO); }
 
     @GetMapping("/subscription/{subscriptionId}")
-    public StandardResponse getSubscription(@PathVariable Long subscriptionId) {
-        return this.adminService.getSubscription(subscriptionId);
-    }
+    public StandardResponse getSubscription(@PathVariable Long subscriptionId) { return this.adminService.getSubscription(subscriptionId); }
 
     @PutMapping("/subscription/{subscriptionId}")
-    public StandardResponse editSubscription(@PathVariable Long subscriptionId, @RequestBody EditSubscriptionDTO subscriptionDTO) {
-        return this.adminService.editSubscription(subscriptionId, subscriptionDTO);
-    }
+    public StandardResponse editSubscription(@PathVariable Long subscriptionId, @RequestBody EditSubscriptionDTO subscriptionDTO) { return this.adminService.editSubscription(subscriptionId, subscriptionDTO); }
 
     @DeleteMapping("/subscription/{subscriptionId}")
-    public StandardResponse deleteSubscription(@PathVariable Long subscriptionId) {
-        return this.adminService.deleteSubscription(subscriptionId);
-    }
+    public StandardResponse deleteSubscription(@PathVariable Long subscriptionId) { return this.adminService.deleteSubscription(subscriptionId); }
 
 }

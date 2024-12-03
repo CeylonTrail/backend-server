@@ -1,5 +1,6 @@
 package com.ceylontrail.backend_server.service.impl;
 
+import com.ceylontrail.backend_server.entity.AdvertisementEntity;
 import com.ceylontrail.backend_server.entity.ImageEntity;
 import com.ceylontrail.backend_server.entity.PostEntity;
 import com.ceylontrail.backend_server.exception.NotFoundException;
@@ -93,6 +94,22 @@ public class ImageServiceIMPL implements ImageService {
 
     @Override
     public void deletePostImages(List<ImageEntity> images) {
+        for (ImageEntity image : images) {
+            deleteImage(image);
+        }
+    }
+
+    @Override
+    public List<ImageEntity> UploadAdImages(AdvertisementEntity ad, List<MultipartFile> files) {
+        return files.stream().map(file -> {
+            ImageEntity image = this.uploadImage(file);
+            image.setAdvertisement(ad);
+            return imageRepo.save(image);
+        }).collect(Collectors.toList());
+    }
+
+    @Override
+    public void deleteAdImages(List<ImageEntity> images) {
         for (ImageEntity image : images) {
             deleteImage(image);
         }

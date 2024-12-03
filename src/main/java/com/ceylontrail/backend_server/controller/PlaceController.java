@@ -35,7 +35,7 @@ public class PlaceController {
             @RequestParam(value = "location") String location
 
     ) {
-       return googlePlacesService.getPlaces(location,10000,100);
+       return googlePlacesService.getPlaces(location,5000,10);
 
     }
 

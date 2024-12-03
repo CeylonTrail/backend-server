@@ -7,15 +7,15 @@ import com.ceylontrail.backend_server.util.StandardResponse;
 public interface AdminService {
     StandardResponse getDashboard();
 
-    StandardResponse getTravellers(String search, int pageNumber, int pageSize);
+    StandardResponse getTravellers();
 
     StandardResponse getTraveller(int userId);
 
     StandardResponse deleteTraveller(int userId);
 
-    StandardResponse getSPs(String key, int pageNumber, int pageSize);
+    StandardResponse getSPs();
 
-    StandardResponse getSP(int userId);
+    StandardResponse getSP(Long spId);
 
     StandardResponse deleteSP(int userId);
 

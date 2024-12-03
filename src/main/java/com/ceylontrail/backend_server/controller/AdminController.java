@@ -21,19 +21,13 @@ public class AdminController {
     }
 
     @GetMapping("/user/traveller")
-    public StandardResponse getTravellers(
-            @RequestParam(defaultValue = "") String key,
-            @RequestParam(defaultValue = "1") int pageNumber,
-            @RequestParam(defaultValue = "5") int pageSize) {
-        return adminService.getTravellers(key, pageNumber, pageSize);
+    public StandardResponse getTravellers(){
+        return adminService.getTravellers();
     }
 
     @GetMapping("/user/sp")
-    public StandardResponse getSPs(
-            @RequestParam(defaultValue = "") String key,
-            @RequestParam(defaultValue = "1") int pageNumber,
-            @RequestParam(defaultValue = "5") int pageSize) {
-        return this.adminService.getSPs(key, pageNumber, pageSize);
+    public StandardResponse getSPs() {
+        return this.adminService.getSPs();
     }
 
     @GetMapping("/user/traveller/{userId}")
@@ -46,9 +40,9 @@ public class AdminController {
         return this.adminService.deleteTraveller(userId);
     }
 
-    @GetMapping("/user/sp/{userId}")
-    public StandardResponse getSP(@PathVariable int userId) {
-        return this.adminService.getSP(userId);
+    @GetMapping("/user/sp/{spId}")
+    public StandardResponse getSP(@PathVariable Long spId) {
+        return this.adminService.getSP(spId);
     }
 
     @DeleteMapping("/user/sp/{userId}")

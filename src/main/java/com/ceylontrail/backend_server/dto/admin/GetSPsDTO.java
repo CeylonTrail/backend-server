@@ -10,15 +10,7 @@ import java.util.List;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class GetSPDTO {
-
-    private int pageNumber;
-
-    private int totalPages;
-
-    private int totalElements;
-
-    private int pageSize;
+public class GetSPsDTO {
 
     private List<SP> SPs = new ArrayList<>();
 

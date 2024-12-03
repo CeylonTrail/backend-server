@@ -4,8 +4,6 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
-
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -21,6 +19,6 @@ public class SP {
     private boolean accountStatus;
     private boolean setupState;
     private String verificationStatus;
-    private LocalDateTime createdAt;
+    private String createdAt;
 
 }

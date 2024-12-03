@@ -71,7 +71,7 @@ public class AdminServiceIMPL implements AdminService {
         sp.setFirstname(serviceProvider.getUser().getFirstname());
         sp.setLastname(serviceProvider.getUser().getLastname());
         sp.setAccountStatus(serviceProvider.getUser().getActivationToken() == null);
-        sp.setCreatedAt(serviceProvider.getUser().getCreatedAt());
+        sp.setCreatedAt(serviceProvider.getUser().getCreatedAt().toLocalDate().toString());
         if (Objects.equals(serviceProvider.getIsSetupComplete(), "NO")) {
             sp.setSetupState(false);
             sp.setVerificationStatus("-");

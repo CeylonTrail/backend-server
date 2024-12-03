@@ -36,4 +36,11 @@ public class PlaceEntity {
         this.photoUrl = photoUrl;
         this.rating = rating;
     }
+
+    public PlaceEntity(String placeId, String name, double latitude, double longitude) {
+        this.placeId = placeId;
+        this.name = name;
+        this.latitude = latitude;
+        this.longitude = longitude;
+    }
 }

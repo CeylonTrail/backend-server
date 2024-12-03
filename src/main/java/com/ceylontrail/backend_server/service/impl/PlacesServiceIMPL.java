@@ -68,7 +68,7 @@ public class PlacesServiceIMPL implements PlacesService {
                 String latitude = locationMap.get("lat").toString();
                 String longitude = locationMap.get("lng").toString();
                 return latitude + "," + longitude;
-            }else{
+            } else {
                 return null;
             }
         }
@@ -80,7 +80,7 @@ public class PlacesServiceIMPL implements PlacesService {
         String coordinates = getCoordinates(location);
         System.out.println(coordinates);
         if (coordinates == null) {
-            return new StandardResponse(404,"error",null);
+            return new StandardResponse(404, "error", null);
         }
         String url = String.format("%s?location=%s&radius=%d&type=tourist_attraction&key=%s", apiUrl, coordinates, radius, apiKey);
         int resultsCount = 0;
@@ -107,9 +107,9 @@ public class PlacesServiceIMPL implements PlacesService {
                     Map<String, Object> geometry = (Map<String, Object>) placeData.get("geometry");
                     Map<String, Object> locationData = (Map<String, Object>) geometry.get("location");
                     double rating = placeData.containsKey("rating") ? ((Number) placeData.get("rating")).doubleValue() : 0.0;
-                    int user_rating = placeData.containsKey("user_ratings_total")?((Number) placeData.get("user_ratings_total")).intValue():0;
+                    int user_rating = placeData.containsKey("user_ratings_total") ? ((Number) placeData.get("user_ratings_total")).intValue() : 0;
 
-                    if(rating>2 && user_rating>50) {
+                    if (rating > 2 && user_rating > 50) {
                         String photoUrl = null;
                         if (placeData.containsKey("photos")) {
                             List<Map<String, Object>> photos = (List<Map<String, Object>>) placeData.get("photos");
@@ -131,15 +131,13 @@ public class PlacesServiceIMPL implements PlacesService {
 
                         );
 
-                        boolean existByPlaceID =placeRepo.existsByPlaceId(placeEntity.getPlaceId());
-                        if(existByPlaceID){
+                        boolean existByPlaceID = placeRepo.existsByPlaceId(placeEntity.getPlaceId());
+                        if (existByPlaceID) {
                             System.out.println("place already in the db");
-                        }else{
+                        } else {
                             placeRepo.save(placeEntity);
                         }
                         allPlaces.add(placeEntity);
-                        System.out.println(placeData);
-                        System.out.println(placeEntity);
                         resultsCount++;
                     }
                 }
@@ -168,7 +166,7 @@ public class PlacesServiceIMPL implements PlacesService {
 
         String prompt = String.format(
                 "Give a 50 word description for following tourist attraction place in Sri Lanka for a travel app. Return only the description.The place name is: %s. located in: %s",
-                name,address);
+                name, address);
 
         Map<String, Object> requestBody = new HashMap<>();
         requestBody.put("model", "gpt-3.5-turbo");
@@ -221,7 +219,7 @@ public class PlacesServiceIMPL implements PlacesService {
                 String placeId = (String) candidate.get("place_id");
                 String photoUrl = getPlacePhotoUrlFromAPI(placeId);
                 imageUrl = savePlacePhoto(photoUrl, placeName.toLowerCase(Locale.ROOT));
-                System.out.println("imageUrl "+imageUrl);
+                System.out.println("imageUrl " + imageUrl);
             }
         }
 
@@ -268,14 +266,14 @@ public class PlacesServiceIMPL implements PlacesService {
                     String fileName = place.replaceAll("\\s+", "_") + ".jpg";
                     MultipartFile multipartFile = new ByteArrayMultipartFile("file", fileName, "image/jpeg", imageBytes);
                     savedFileName = fileUploadUtil.saveFile(multipartFile);
-                    if(!imageRepo.existsByFilename(fileName.toLowerCase())){
+                    if (!imageRepo.existsByFilename(fileName.toLowerCase())) {
                         ImageEntity image = new ImageEntity();
                         image.setFilename(fileName.toLowerCase());
                         image.setUrl(serverUrl + "/api/v1/image/" + fileName);
                         imageRepo.save(image);
                     }
 
-                }else{
+                } else {
                     return "Image Not Found";
                 }
             }
@@ -288,26 +286,71 @@ public class PlacesServiceIMPL implements PlacesService {
 
 
     @Override
-    public StandardResponse getAllPlaces(int page, int size) {
-        Page<PlaceEntity> placePage = placeRepo.findAll(PageRequest.of(page,size));
-        List<PlaceDTO> placeDTOS = mapper.pageToList(placePage);
+    public StandardResponse getAllPlaces() {
+        List<PlaceEntity> placeEntityList = placeRepo.findAll();
+        List<PlaceDTO> placeDTOS = mapper.placesEntityListToDtoList(placeEntityList);
         long count = placeRepo.count();
-        PaginatedResponsePlaceDTO paginatedResponsePlaceDTO =  new PaginatedResponsePlaceDTO(
+        PaginatedResponsePlaceDTO paginatedResponsePlaceDTO = new PaginatedResponsePlaceDTO(
                 placeDTOS,
                 count
         );
-        return new StandardResponse(200,"All Places",paginatedResponsePlaceDTO);
+        return new StandardResponse(200, "All Places", placeDTOS);
     }
 
-//    @Override
-//    public StandardResponse getAllPlaces() {
-//        List<PlaceEntity> places = placeRepo.findAll();
-//        List<PlaceDTO> allPlaces = mapper.placesEntityListToDtoList(places);
-//        return new StandardResponse(200,"All-Places",allPlaces);
-//
-//    }
+    @Override
+    public StandardResponse getEmergencyPlaces(String location) {
+        String coordinates = getCoordinates(location);
 
+        if (coordinates == null) {
+            return new StandardResponse(404, "error", null);
+        }
 
+        List<PlaceEntity> allPlaces = new ArrayList<>();
+        fetchPlacesByType(coordinates, "hospital", allPlaces);
+        fetchPlacesByType(coordinates, "police", allPlaces);
 
+        return new StandardResponse(200, "success", allPlaces);
+    }
+
+    private void fetchPlacesByType(String coordinates, String type, List<PlaceEntity> allPlaces) {
+        String url = String.format("%s?location=%s&radius=%d&type=%s&key=%s", apiUrl, coordinates, 5000, type, apiKey);
+        int resultsCount = 0;
+
+        while (url != null && resultsCount < 6) {
+            Map<String, Object> response = restTemplate.getForObject(url, Map.class);
+
+            if (response != null && response.containsKey("results")) {
+                List<Map<String, Object>> places = (List<Map<String, Object>>) response.get("results");
+
+                for (Map<String, Object> placeData : places) {
+                    if (resultsCount >= 6) break;
+
+                    Map<String, Object> geometry = (Map<String, Object>) placeData.get("geometry");
+                    if (geometry == null) continue;
+
+                    Map<String, Object> locationData = (Map<String, Object>) geometry.get("location");
+                    if (locationData == null) continue;
+
+                    PlaceEntity placeEntity = new PlaceEntity(
+                            (String) placeData.get("place_id"),
+                            (String) placeData.get("name"),
+                            (double) locationData.get("lat"),
+                            (double) locationData.get("lng")
+                    );
+
+                    if (!allPlaces.contains(placeEntity)) {
+                        allPlaces.add(placeEntity);
+                        resultsCount++;
+                    }
+                }
+
+            } else {
+                url = null;
+            }
+        }
+    }
 
 }
+
+
+

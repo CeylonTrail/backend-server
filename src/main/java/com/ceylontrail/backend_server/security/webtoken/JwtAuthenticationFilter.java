@@ -29,7 +29,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         Set<String> publicEndpoints = Set.of(
                 "/api/v1/auth/",
-                "/api/v1/post/community-feed/public"
+                "/api/v1/post/community-feed/public",
+                "/login",
+                "/swagger-ui/",
+                "/v3/api-docs"
         );
 
         String requestURI = request.getRequestURI();
@@ -59,24 +62,21 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             } else {
                 sendCustomResponse(response);
             }
-        } else {
-            sendCustomResponse(response);
         }
 
         filterChain.doFilter(request, response);
     }
 
     private void sendCustomResponse(HttpServletResponse response) throws IOException {
-        response.setStatus(HttpServletResponse.SC_OK);
+        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
         response.setContentType("application/json");
         response.setCharacterEncoding("UTF-8");
         var responseBody = Map.of(
                 "code", 401,
-                "message", "JWT Error"
+                "message", "Invalid JWT Token"
         );
         ObjectMapper objectMapper = new ObjectMapper();
         response.getWriter().write(objectMapper.writeValueAsString(responseBody));
         response.getWriter().flush();
     }
-
 }

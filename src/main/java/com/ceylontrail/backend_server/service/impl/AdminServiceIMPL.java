@@ -18,7 +18,6 @@ import com.ceylontrail.backend_server.service.PostService;
 import com.ceylontrail.backend_server.service.UserService;
 import com.ceylontrail.backend_server.util.StandardResponse;
 import lombok.AllArgsConstructor;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
@@ -57,7 +56,7 @@ public class AdminServiceIMPL implements AdminService {
         traveller.setLastname(user.getLastname());
         traveller.setEmail(user.getEmail());
         traveller.setUsername(user.getUsername());
-        traveller.setCreatedAt(user.getCreatedAt());
+        traveller.setCreatedAt(user.getCreatedAt().toLocalDate().toString());
         traveller.setAccountStatus(user.getActivationToken() == null);
         return traveller;
     }
@@ -67,32 +66,38 @@ public class AdminServiceIMPL implements AdminService {
         sp.setUserId(serviceProvider.getUser().getUserId());
         sp.setSpId(serviceProvider.getServiceProviderId());
         sp.setServiceName(serviceProvider.getServiceName());
-        if (Objects.equals(serviceProvider.getServiceType(), ServiceProviderTypeEnum.ACCOMMODATION))
-            sp.setServiceType(String.valueOf(ServiceProviderTypeEnum.ACCOMMODATION));
-        else if (Objects.equals(serviceProvider.getServiceType(), ServiceProviderTypeEnum.RESTAURANT))
-            sp.setServiceType(String.valueOf(ServiceProviderTypeEnum.RESTAURANT));
-        else if (Objects.equals(serviceProvider.getServiceType(), ServiceProviderTypeEnum.EQUIPMENT))
-            sp.setServiceType(String.valueOf(ServiceProviderTypeEnum.EQUIPMENT));
-        else
-            sp.setServiceType(String.valueOf(ServiceProviderTypeEnum.OTHER));
+        sp.setServiceType(this.mapServiceTypeToString(serviceProvider.getServiceType()));
         sp.setUsername(serviceProvider.getUser().getUsername());
         sp.setFirstname(serviceProvider.getUser().getFirstname());
         sp.setLastname(serviceProvider.getUser().getLastname());
         sp.setAccountStatus(serviceProvider.getUser().getActivationToken() == null);
-        sp.setCreatedAt(serviceProvider.getUser().getCreatedAt());
+        sp.setCreatedAt(serviceProvider.getUser().getCreatedAt().toLocalDate().toString());
         if (Objects.equals(serviceProvider.getIsSetupComplete(), "NO")) {
             sp.setSetupState(false);
             sp.setVerificationStatus("-");
         } else {
             sp.setSetupState(true);
-            if (Objects.equals(serviceProvider.getVerificationStatus(), VerificationStatusEnum.PENDING))
-                sp.setVerificationStatus(String.valueOf(VerificationStatusEnum.PENDING));
-            else if (Objects.equals(serviceProvider.getVerificationStatus(), VerificationStatusEnum.REJECTED))
-                sp.setVerificationStatus(String.valueOf(VerificationStatusEnum.REJECTED));
-            else
-                sp.setVerificationStatus(String.valueOf(VerificationStatusEnum.APPROVED));
+            sp.setVerificationStatus(this.mapVerificationStatusToString(serviceProvider.getVerificationStatus()));
         }
         return sp;
+    }
+
+    private String mapServiceTypeToString(ServiceProviderTypeEnum type){
+        if (Objects.equals(type, ServiceProviderTypeEnum.ACCOMMODATION))
+            return String.valueOf(ServiceProviderTypeEnum.ACCOMMODATION);
+        if (Objects.equals(type, ServiceProviderTypeEnum.RESTAURANT))
+            return String.valueOf(ServiceProviderTypeEnum.RESTAURANT);
+        if (Objects.equals(type, ServiceProviderTypeEnum.EQUIPMENT))
+            return String.valueOf(ServiceProviderTypeEnum.EQUIPMENT);
+        return String.valueOf(ServiceProviderTypeEnum.OTHER);
+    }
+
+    private String mapVerificationStatusToString(VerificationStatusEnum status){
+        if (Objects.equals(status, VerificationStatusEnum.PENDING))
+            return String.valueOf(VerificationStatusEnum.PENDING);
+        if (Objects.equals(status, VerificationStatusEnum.REJECTED))
+            return String.valueOf(VerificationStatusEnum.REJECTED);
+        return String.valueOf(VerificationStatusEnum.APPROVED);
     }
 
     private ChartData getSubscriptionCountsForLastYear() {
@@ -133,14 +138,7 @@ public class AdminServiceIMPL implements AdminService {
                     Subscriber subscriber = new Subscriber();
                     subscriber.setServiceName(sp.getServiceName());
                     subscriber.setProfilePictureUrl(sp.getUser().getProfilePictureUrl());
-                    if (Objects.equals(sp.getServiceType(), ServiceProviderTypeEnum.ACCOMMODATION))
-                        subscriber.setServiceType(String.valueOf(ServiceProviderTypeEnum.ACCOMMODATION));
-                    else if (Objects.equals(sp.getServiceType(), ServiceProviderTypeEnum.RESTAURANT))
-                        subscriber.setServiceType(String.valueOf(ServiceProviderTypeEnum.RESTAURANT));
-                    else if (Objects.equals(sp.getServiceType(), ServiceProviderTypeEnum.EQUIPMENT))
-                        subscriber.setServiceType(String.valueOf(ServiceProviderTypeEnum.EQUIPMENT));
-                    else
-                        subscriber.setServiceType(String.valueOf(ServiceProviderTypeEnum.OTHER));
+                    subscriber.setServiceType(this.mapServiceTypeToString(sp.getServiceType()));
                     return subscriber;
                 })
                 .toList();
@@ -167,53 +165,88 @@ public class AdminServiceIMPL implements AdminService {
     }
 
     @Override
-    public StandardResponse getTravellers(String key, int pageNumber, int pageSize) {
-        Page<UserEntity> results = userRepo.searchTravellers(key, PageRequest.of(pageNumber - 1, pageSize));
+    public StandardResponse getTravellers() {
         GetTravellersDTO dto = new GetTravellersDTO();
-        dto.setPageNumber(results.getPageable().getPageNumber() + 1);
-        dto.setPageSize(results.getPageable().getPageSize());
-        dto.setTotalElements((int) results.getTotalElements());
-        dto.setTotalPages(results.getTotalPages());
-        List<Traveller> pageTravellers = new ArrayList<>();
-        for (UserEntity user : results.getContent()) { pageTravellers.add(this.mapToTraveller(user)); }
-        dto.setTravellers(pageTravellers);
+        List<Traveller> travellers = new ArrayList<>();
+        for (UserEntity user : userRepo.getALLTravellers()) { travellers.add(this.mapToTraveller(user)); }
+        dto.setTravellers(travellers);
         return new StandardResponse(200, "Travellers fetched successfully", dto);
-    }
-
-    @Override
-    public StandardResponse getTraveller(int userId) {
-        return null;
     }
 
     @Override
     public StandardResponse deleteTraveller(int userId) {
         UserEntity user = userService.initialUserCheck(userId);
+        for (PostEntity post : user.getLikes()) {
+            post.getLikes().remove(user);
+        }
         userRepo.deleteById(user.getUserId());
         return new StandardResponse(200, "Traveller deleted successfully", null);
     }
 
     @Override
-    public StandardResponse getSPs(String key, int pageNumber, int pageSize) {
-        Page<ServiceProviderEntity> results = spRepo.searchSPs(key, PageRequest.of(pageNumber - 1, pageSize));
-        GetSPDTO dto = new GetSPDTO();
-        dto.setPageNumber(results.getPageable().getPageNumber() + 1);
-        dto.setPageSize(results.getPageable().getPageSize());
-        dto.setTotalElements((int) results.getTotalElements());
-        dto.setTotalPages(results.getTotalPages());
-        List<SP> pageSPs = new ArrayList<>();
-        for (ServiceProviderEntity serviceProvider : results.getContent()) { pageSPs.add(this.mapToSP(serviceProvider)); }
-        dto.setSPs(pageSPs);
+    public StandardResponse getSPs() {
+        GetSPsDTO dto = new GetSPsDTO();
+        List<SP> sps = new ArrayList<>();
+        for (ServiceProviderEntity serviceProvider : spRepo.findAll()) { sps.add(this.mapToSP(serviceProvider)); }
+        dto.setSPs(sps);
         return new StandardResponse(200, "SPs fetched successfully", dto);
     }
 
     @Override
-    public StandardResponse getSP(int userId) {
+    public StandardResponse getSP(Long spId) {
+        ServiceProviderEntity sp = spRepo.findByServiceProviderId(spId);
+        GetSP dto = new GetSP();
+        dto.setServiceName(sp.getServiceName());
+        dto.setServiceType(this.mapServiceTypeToString(sp.getServiceType()));
+        dto.setFirstname(sp.getUser().getFirstname());
+        dto.setLastname(sp.getUser().getLastname());
+        dto.setEmail(sp.getUser().getEmail());
+        dto.setUsername(sp.getUser().getUsername());
+        dto.setCreatedAt(sp.getUser().getCreatedAt().toString());
+        dto.setAccountStatus(sp.getUser().getActivationToken() == null ? "ACTIVATED" : "NOT ACTIVATED");
+        dto.setSetupStatus(sp.getIsSetupComplete());
+        if (Objects.equals(dto.getSetupStatus(), "NO")) {
+            dto.setVerificationStatus("NULL");
+            dto.setVerificationStatusUpdatedAt("NULL");
+            dto.setDescription("NULL");
+            dto.setContactNumber("NULL");
+            dto.setAddress("NULL");
+            dto.setSubscriptionPlan("NULL");
+            dto.setSubscriptionPurchaseDate("NULL");
+            dto.setSubscriptionExpiryDate("NULL");
+        } else {
+            dto.setVerificationStatus(this.mapVerificationStatusToString(sp.getVerificationStatus()));
+            dto.setVerificationStatusUpdatedAt(sp.getVerificationStatusUpdatedAt().toString());
+            dto.setDescription(sp.getDescription());
+            dto.setContactNumber(sp.getContactNumber());
+            dto.setAddress(sp.getAddress());
+            dto.setSubscriptionPlan(sp.getSubscriptionPlan().getName());
+            dto.setSubscriptionPurchaseDate(sp.getSubscriptionPurchaseDate().toString());
+            dto.setSubscriptionExpiryDate(sp.getSubscriptionExpiryDate().toString());
+        }
+        return new StandardResponse(200, "SP fetched successfully", dto);
+    }
+
+    @Override
+    public StandardResponse getPendingVerificationSPs() {
+        GetSPsDTO dto = new GetSPsDTO();
+        List<SP> sps = new ArrayList<>();
+        for (ServiceProviderEntity serviceProvider : spRepo.findALLPending(VerificationStatusEnum.PENDING)) { sps.add(this.mapToSP(serviceProvider)); }
+        dto.setSPs(sps);
+        return new StandardResponse(200, "SPs fetched successfully", dto);
+    }
+
+    @Override
+    public StandardResponse getPendingVerificationSP(Long spId) {
         return null;
     }
 
     @Override
     public StandardResponse deleteSP(int userId) {
         UserEntity user = userService.initialUserCheck(userId);
+        for (PostEntity post : user.getLikes()) {
+            post.getLikes().remove(user);
+        }
         userRepo.deleteById(user.getUserId());
         return new StandardResponse(200, "Service Provider deleted successfully", null);
     }
@@ -266,7 +299,5 @@ public class AdminServiceIMPL implements AdminService {
         subscriptionRepo.delete(subscription);
         return new StandardResponse(200, "Subscription plan deleted successfully", null);
     }
-
-
 
 }

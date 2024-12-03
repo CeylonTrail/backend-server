@@ -25,11 +25,13 @@ public interface Mapper {
     //Places Controller
     PlaceEntity placeDtoToEntity(PlaceEntity place);
     List<PlaceDTO> placesEntityListToDtoList(List<PlaceEntity> places);
-    List<PlaceDTO> pageToList(Page<PlaceEntity> placePage);
+//    List<PlaceDTO> pageToList(Page<PlaceEntity> placePage);
 
     //Event Controller
     List<EventDTO> eventListToDtoList(List<EventEntity> eventList);
 
 
-    List<AdvertisementDTO> addEntityToDtoList(List<AdvertisementEntity> advertisementEntities);
+
+
+
 }

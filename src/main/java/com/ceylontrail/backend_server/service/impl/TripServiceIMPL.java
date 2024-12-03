@@ -155,7 +155,7 @@ public class TripServiceIMPL implements TripService {
             return new StandardResponse(200, "success", getAllTripDTOS);
 
         }else{
-            return new StandardResponse(200, "success", "No Planned Trips");
+            return new StandardResponse(404, "You dont have trips", null);
         }
 
     }

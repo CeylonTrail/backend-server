@@ -27,7 +27,7 @@ public class SPController {
         return this.spService.purchaseSubscription(purchaseDTO);
     }
     @PostMapping("/advertisement")
-    public StandardResponse createAdvertisement(@RequestBody AdvertisementDTO advertisementDTO){
+    public StandardResponse createAdvertisement(@ModelAttribute AdvertisementDTO advertisementDTO){
         return this.spService.createAdvertisement(advertisementDTO);
     }
 

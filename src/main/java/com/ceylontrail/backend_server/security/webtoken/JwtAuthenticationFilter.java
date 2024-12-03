@@ -30,6 +30,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         Set<String> publicEndpoints = Set.of(
                 "/api/v1/auth/",
                 "/api/v1/post/community-feed/public",
+                "/api/v1/image/",
                 "/login",
                 "/swagger-ui/",
                 "/v3/api-docs"

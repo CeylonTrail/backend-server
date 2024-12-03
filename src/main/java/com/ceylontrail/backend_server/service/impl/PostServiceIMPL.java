@@ -177,7 +177,7 @@ public class PostServiceIMPL implements PostService {
         PostEntity post = new PostEntity();
         post.setUser(userRepo.findByUserId(authService.getAuthUserId()));
         post.setContent(postDTO.getContent());
-        if (postDTO.getTripId() != null)
+        if (!Objects.equals(postDTO.getTripId(), "0"))
             post.setTrip(this.tripService.initialTripAndUserCheck(Integer.parseInt(postDTO.getTripId())));
         if (Objects.equals(postDTO.getPrivacy(), String.valueOf(PostPrivacyEnum.FOLLOWERS)))
             post.setPrivacy(PostPrivacyEnum.FOLLOWERS);

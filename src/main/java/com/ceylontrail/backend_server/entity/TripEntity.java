@@ -67,4 +67,13 @@ public class  TripEntity {
         this.createdAt = createdAt;
         this.updateAt = updateAt;
     }
+
+    public TripEntity(int tripId, String destination, int dayCount, String description, LocalDate createdAt, LocalDate updateAt) {
+        this.tripId = tripId;
+        this.destination = destination;
+        this.dayCount = dayCount;
+        this.description = description;
+        this.createdAt = createdAt;
+        this.updateAt = updateAt;
+    }
 }

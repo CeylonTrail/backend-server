@@ -1,4 +1,4 @@
-package com.ceylontrail.backend_server.dto;
+package com.ceylontrail.backend_server.dto.places;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

@@ -1,10 +1,10 @@
 package com.ceylontrail.backend_server.service.impl;
 import com.ceylontrail.backend_server.config.ByteArrayMultipartFile;
-import com.ceylontrail.backend_server.dto.PlaceDTO;
+import com.ceylontrail.backend_server.dto.places.EmergencyPlaceDTO;
+import com.ceylontrail.backend_server.dto.places.PlaceDTO;
 import com.ceylontrail.backend_server.dto.paginated.PaginatedResponsePlaceDTO;
 import com.ceylontrail.backend_server.entity.ImageEntity;
 import com.ceylontrail.backend_server.entity.PlaceEntity;
-import com.ceylontrail.backend_server.exception.BadRequestException;
 import com.ceylontrail.backend_server.repo.ImageRepo;
 import com.ceylontrail.backend_server.repo.PlaceRepo;
 import com.ceylontrail.backend_server.service.PlacesService;
@@ -12,8 +12,6 @@ import com.ceylontrail.backend_server.util.FileUploadUtil;
 import com.ceylontrail.backend_server.util.StandardResponse;
 import com.ceylontrail.backend_server.util.mapper.Mapper;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.beans.factory.annotation.Value;
@@ -305,14 +303,14 @@ public class PlacesServiceIMPL implements PlacesService {
             return new StandardResponse(404, "error", null);
         }
 
-        List<PlaceEntity> allPlaces = new ArrayList<>();
+        List<EmergencyPlaceDTO> allPlaces = new ArrayList<>();
         fetchPlacesByType(coordinates, "hospital", allPlaces);
         fetchPlacesByType(coordinates, "police", allPlaces);
 
         return new StandardResponse(200, "success", allPlaces);
     }
 
-    private void fetchPlacesByType(String coordinates, String type, List<PlaceEntity> allPlaces) {
+    private void fetchPlacesByType(String coordinates, String type, List<EmergencyPlaceDTO> allPlaces) {
         String url = String.format("%s?location=%s&radius=%d&type=%s&key=%s", apiUrl, coordinates, 5000, type, apiKey);
         int resultsCount = 0;
 
@@ -321,7 +319,7 @@ public class PlacesServiceIMPL implements PlacesService {
 
             if (response != null && response.containsKey("results")) {
                 List<Map<String, Object>> places = (List<Map<String, Object>>) response.get("results");
-
+                System.out.println(places);
                 for (Map<String, Object> placeData : places) {
                     if (resultsCount >= 6) break;
 
@@ -331,7 +329,7 @@ public class PlacesServiceIMPL implements PlacesService {
                     Map<String, Object> locationData = (Map<String, Object>) geometry.get("location");
                     if (locationData == null) continue;
 
-                    PlaceEntity placeEntity = new PlaceEntity(
+                    EmergencyPlaceDTO placeEntity = new EmergencyPlaceDTO(
                             (String) placeData.get("place_id"),
                             (String) placeData.get("name"),
                             (double) locationData.get("lat"),

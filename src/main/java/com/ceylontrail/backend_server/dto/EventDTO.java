@@ -1,7 +1,6 @@
 package com.ceylontrail.backend_server.dto;
 
-import com.ceylontrail.backend_server.entity.TripEntity;
-import jakarta.persistence.*;
+import com.ceylontrail.backend_server.dto.places.PlaceDTO;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;

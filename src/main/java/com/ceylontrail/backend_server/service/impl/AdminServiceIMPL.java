@@ -228,16 +228,16 @@ public class AdminServiceIMPL implements AdminService {
     }
 
     @Override
-    public StandardResponse getPendingVerificationSPs() {
+    public StandardResponse getAllVerificationSPs() {
         GetSPsDTO dto = new GetSPsDTO();
         List<SP> sps = new ArrayList<>();
-        for (ServiceProviderEntity serviceProvider : spRepo.findALLPending(VerificationStatusEnum.PENDING)) { sps.add(this.mapToSP(serviceProvider)); }
+        for (ServiceProviderEntity serviceProvider : spRepo.findALLVerification()) { sps.add(this.mapToSP(serviceProvider)); }
         dto.setSPs(sps);
         return new StandardResponse(200, "SPs fetched successfully", dto);
     }
 
     @Override
-    public StandardResponse getPendingVerificationSP(Long spId) {
+    public StandardResponse getVerificationSP(Long spId) {
         ServiceProviderEntity sp = spRepo.findByServiceProviderId(spId);
         GetPendingSP dto = new GetPendingSP();
         dto.setServiceProviderId(sp.getServiceProviderId());
@@ -320,6 +320,19 @@ public class AdminServiceIMPL implements AdminService {
         SubscriptionPlanEntity subscription = this.initialSubscriptionPlanCheck(subscriptionId);
         subscriptionRepo.delete(subscription);
         return new StandardResponse(200, "Subscription plan deleted successfully", null);
+    }
+
+    @Override
+    public StandardResponse updateVerificationSP(Long spId, UpdateVerificationDTO updateVerificationDTO) {
+        ServiceProviderEntity sp = spRepo.findByServiceProviderId(spId);
+        if (Objects.equals(updateVerificationDTO.getState(), String.valueOf(VerificationStatusEnum.APPROVED)))
+            sp.setVerificationStatus(VerificationStatusEnum.APPROVED);
+        if (Objects.equals(updateVerificationDTO.getState(), String.valueOf(VerificationStatusEnum.REJECTED)))
+            sp.setVerificationStatus(VerificationStatusEnum.REJECTED);
+        if (Objects.equals(updateVerificationDTO.getState(), String.valueOf(VerificationStatusEnum.PENDING)))
+            sp.setVerificationStatus(VerificationStatusEnum.PENDING);
+        spRepo.save(sp);
+        return new StandardResponse(200, "Verification status updated successfully", null);
     }
 
 }

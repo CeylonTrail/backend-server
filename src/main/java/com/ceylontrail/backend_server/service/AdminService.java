@@ -1,5 +1,6 @@
 package com.ceylontrail.backend_server.service;
 
+import com.ceylontrail.backend_server.dto.admin.UpdateVerificationDTO;
 import com.ceylontrail.backend_server.dto.subscription.AddSubscriptionDTO;
 import com.ceylontrail.backend_server.dto.subscription.EditSubscriptionDTO;
 import com.ceylontrail.backend_server.util.StandardResponse;
@@ -17,9 +18,9 @@ public interface AdminService {
 
     StandardResponse deleteSP(int userId);
 
-    StandardResponse getPendingVerificationSPs();
+    StandardResponse getAllVerificationSPs();
 
-    StandardResponse getPendingVerificationSP(Long spId);
+    StandardResponse getVerificationSP(Long spId);
 
     StandardResponse deletePost(Long postId);
 
@@ -30,4 +31,6 @@ public interface AdminService {
     StandardResponse editSubscription(Long subscriptionId, EditSubscriptionDTO subscriptionDTO);
 
     StandardResponse deleteSubscription(Long subscriptionId);
+
+    StandardResponse updateVerificationSP(Long spId, UpdateVerificationDTO updateVerificationDTO);
 }

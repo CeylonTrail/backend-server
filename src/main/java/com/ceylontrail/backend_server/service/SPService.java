@@ -2,6 +2,7 @@ package com.ceylontrail.backend_server.service;
 
 import com.ceylontrail.backend_server.dto.advertisement.AdvertisementDTO;
 import com.ceylontrail.backend_server.dto.advertisement.EditAdDTO;
+import com.ceylontrail.backend_server.dto.sp.SPEditDTO;
 import com.ceylontrail.backend_server.dto.sp.SPSetupDTO;
 import com.ceylontrail.backend_server.dto.sp.SubscriptionPurchaseDTO;
 import com.ceylontrail.backend_server.util.StandardResponse;
@@ -25,8 +26,11 @@ public interface SPService {
     
     StandardResponse deleteAdvertisement(Long advertisementId);
 
-
     StandardResponse setActive(Long advertisementId);
 
     StandardResponse setInactive(Long advertisementId);
+
+    StandardResponse getProfile();
+
+    StandardResponse edit(Long spId, SPEditDTO spEditDTO);
 }

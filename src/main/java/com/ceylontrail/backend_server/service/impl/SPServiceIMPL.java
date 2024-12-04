@@ -3,6 +3,9 @@ package com.ceylontrail.backend_server.service.impl;
 import com.ceylontrail.backend_server.dto.advertisement.AdvertisementDTO;
 import com.ceylontrail.backend_server.dto.advertisement.EditAdDTO;
 import com.ceylontrail.backend_server.dto.advertisement.GetAdDTO;
+import com.ceylontrail.backend_server.dto.advertisement.GetCardAdDTO;
+import com.ceylontrail.backend_server.dto.sp.SPEditDTO;
+import com.ceylontrail.backend_server.dto.sp.SPProfileDTO;
 import com.ceylontrail.backend_server.dto.sp.SPSetupDTO;
 import com.ceylontrail.backend_server.dto.sp.SubscriptionPurchaseDTO;
 import com.ceylontrail.backend_server.entity.*;
@@ -35,6 +38,7 @@ public class SPServiceIMPL implements SPService {
     private final ImageService imageService;
 
     private final UserRepo userRepo;
+    private final ImageRepo imageRepo;
     private final PaymentRepo paymentRepo;
     private final AdvertisementRepo adRepo;
     private final ServiceProviderRepo spRepo;
@@ -101,6 +105,21 @@ public class SPServiceIMPL implements SPService {
         dto.setRate(ad.getRate());
         dto.setIsActive(ad.getIsActive());
         dto.setCreatedAt(ad.getCreatedAt().toLocalDate().toString());
+        List<String> images = new ArrayList<>();
+        for (ImageEntity image : ad.getImages()) {
+            images.add(image.getUrl());
+        }
+        dto.setImages(images);
+        return dto;
+    }
+
+    private GetCardAdDTO mapToGetCardAdDTO(AdvertisementEntity ad) {
+        GetCardAdDTO dto = new GetCardAdDTO();
+        dto.setId(ad.getAdvertisementId());
+        dto.setTitle(ad.getTitle());
+        dto.setRateType(ad.getRateType());
+        dto.setRate(ad.getRate());
+        dto.setIsActive(ad.getIsActive());
         List<String> images = new ArrayList<>();
         for (ImageEntity image : ad.getImages()) {
             images.add(image.getUrl());
@@ -281,6 +300,51 @@ public class SPServiceIMPL implements SPService {
         sp.setPublishedAddCount(sp.getPublishedAddCount() - 1);
         spRepo.save(sp);
         return new StandardResponse(200, "Advertisement is inactive now", null);
+    }
+
+    @Override
+    public StandardResponse getProfile() {
+        ServiceProviderEntity sp = spRepo.findByUser(userRepo.findByUserId(authService.getAuthUserId()));
+        SPProfileDTO dto = new SPProfileDTO();
+        dto.setServiceProviderId(sp.getServiceProviderId());
+        dto.setServiceName(sp.getServiceName());
+        dto.setServiceType(sp.getServiceType().toString());
+        dto.setContactNumber(sp.getContactNumber());
+        dto.setProfilePictureUrl(sp.getUser().getProfilePictureUrl());
+        dto.setCoverPictureUrl(sp.getCoverPictureUrl());
+        dto.setDescription(sp.getDescription());
+        dto.setAddress(sp.getAddress());
+        dto.setPublishedAddCount(sp.getPublishedAddCount());
+        dto.setMaxAddCount(sp.getSubscriptionPlan().getAdCount());
+        dto.setVerificationStatus(sp.getVerificationStatus().toString());
+        List<GetCardAdDTO> ads  = new ArrayList<>();
+        for (AdvertisementEntity ad : sp.getAdvertisements()) {
+            ads.add(this.mapToGetCardAdDTO(ad));
+        }
+        dto.setAds(ads);
+        return  new StandardResponse(200,"Profile fetched successfully",dto);
+    }
+
+    @Override
+    @Transactional
+    public StandardResponse edit(Long spId, SPEditDTO spEditDTO) {
+        ServiceProviderEntity sp = spRepo.findByServiceProviderId(spId);
+        sp.setDescription(spEditDTO.getDescription());
+        sp.setContactNumber(spEditDTO.getContactNumber());
+        sp.setAddress(spEditDTO.getAddress());
+        if (spEditDTO.getProfilePicture() != null) {
+            if (sp.getUser().getProfilePictureUrl() != null)
+                imageService.deleteImage(imageRepo.findByUrl(sp.getUser().getProfilePictureUrl()));
+            sp.getUser().setProfilePictureUrl(imageService.uploadImage(spEditDTO.getProfilePicture()).getUrl());
+            userRepo.save(sp.getUser());
+        }
+        if (spEditDTO.getCoverPicture() != null) {
+            if (sp.getCoverPictureUrl() != null)
+                imageService.deleteImage(imageRepo.findByUrl(sp.getCoverPictureUrl()));
+            sp.setCoverPictureUrl(imageService.uploadImage(spEditDTO.getCoverPicture()).getUrl());
+        }
+        spRepo.save(sp);
+        return new StandardResponse(200, "Service Provider edit success", null);
     }
 
 }

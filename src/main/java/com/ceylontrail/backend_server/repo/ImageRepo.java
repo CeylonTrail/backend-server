@@ -12,4 +12,6 @@ public interface ImageRepo extends JpaRepository<ImageEntity, String> {
 
     @Query("SELECT i.url FROM ImageEntity i JOIN i.post p WHERE p.user.userId = :userId")
     List<String> findAllImageUrlsByUserId( int userId);
+
+    ImageEntity findByUrl(String url);
 }

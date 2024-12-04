@@ -8,6 +8,7 @@ import com.ceylontrail.backend_server.dto.sp.SPEditDTO;
 import com.ceylontrail.backend_server.dto.sp.SPProfileDTO;
 import com.ceylontrail.backend_server.dto.sp.SPSetupDTO;
 import com.ceylontrail.backend_server.dto.sp.SubscriptionPurchaseDTO;
+import com.ceylontrail.backend_server.dto.subscription.GetSubscriptionDTO;
 import com.ceylontrail.backend_server.entity.*;
 import com.ceylontrail.backend_server.entity.enums.VerificationStatusEnum;
 import com.ceylontrail.backend_server.exception.NotFoundException;
@@ -345,6 +346,23 @@ public class SPServiceIMPL implements SPService {
         }
         spRepo.save(sp);
         return new StandardResponse(200, "Service Provider edit success", null);
+    }
+
+    @Override
+    public StandardResponse getSubscriptions() {
+        List<SubscriptionPlanEntity> subscriptions = subscriptionPlanRepo.findAll();
+        List<GetSubscriptionDTO> dto = new ArrayList<>();
+        for (SubscriptionPlanEntity subscription : subscriptions) {
+            GetSubscriptionDTO subscriptionDTO = new GetSubscriptionDTO();
+            subscriptionDTO.setSubscriptionId(subscription.getSubscriptionId());
+            subscriptionDTO.setName(subscription.getName());
+            subscriptionDTO.setDescription(subscription.getDescription());
+            subscriptionDTO.setPrice(subscription.getPrice());
+            subscriptionDTO.setAdCount(subscription.getAdCount());
+            subscriptionDTO.setFeatures(subscription.getFeature());
+            dto.add(subscriptionDTO);
+        }
+        return new StandardResponse(200,"Subscriptions fetched successfully", dto);
     }
 
 }

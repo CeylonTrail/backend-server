@@ -288,6 +288,7 @@ public class AdminServiceIMPL implements AdminService {
         subscription.setDescription(subscriptionDTO.getDescription());
         subscription.setPrice(subscriptionDTO.getPrice());
         subscription.setAdCount(subscriptionDTO.getAdCount());
+        subscription.setFeature(subscriptionDTO.getFeatures());
         subscriptionRepo.save(subscription);
         return new StandardResponse(200, "Subscription plan added successfully", null);
     }
@@ -301,6 +302,7 @@ public class AdminServiceIMPL implements AdminService {
         dto.setDescription(subscription.getDescription());
         dto.setPrice(subscription.getPrice());
         dto.setAdCount(subscription.getAdCount());
+        dto.setFeatures(subscription.getFeature());
         return new StandardResponse(200, "Subscription plan fetched successfully", dto);
     }
 
@@ -311,6 +313,7 @@ public class AdminServiceIMPL implements AdminService {
         subscription.setDescription(subscriptionDTO.getDescription());
         subscription.setPrice(subscriptionDTO.getPrice());
         subscription.setAdCount(subscriptionDTO.getAdCount());
+        subscription.setFeature(subscriptionDTO.getFeatures());
         subscriptionRepo.save(subscription);
         return new StandardResponse(200, "Subscription plan edited successfully", null);
     }

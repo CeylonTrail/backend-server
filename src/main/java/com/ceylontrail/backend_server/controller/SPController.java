@@ -31,7 +31,12 @@ public class SPController {
     @GetMapping("/profile")
     public StandardResponse getProfile(){ return spService.getProfile(); }
 
-    @PostMapping("/purchase/subscription")
+    @GetMapping("/subscription")
+    public StandardResponse getSubscriptions() {
+        return this.spService.getSubscriptions();
+    }
+
+    @PostMapping("/subscription/purchase")
     public StandardResponse purchaseSubscription(@RequestBody SubscriptionPurchaseDTO purchaseDTO) {
         return this.spService.purchaseSubscription(purchaseDTO);
     }

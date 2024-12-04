@@ -7,6 +7,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @Entity
@@ -54,6 +55,9 @@ public class ServiceProviderEntity {
     @Column(name = "verification_doc_url")
     private String verificationDocUrl;
 
+    @Column(name = "verification_status_updated_at")
+    private LocalDate verificationStatusUpdatedAt;
+
     @ElementCollection
     @CollectionTable(name = "social_media_links", joinColumns = @JoinColumn(name = "service_provider_id"))
     private List<SocialMediaLinks> socialMediaLinks;
@@ -62,4 +66,22 @@ public class ServiceProviderEntity {
     @CollectionTable(name = "opening_hours", joinColumns = @JoinColumn(name = "service_provider_id"))
     private List<OpeningHours> openingHours;
 
+    @ManyToOne
+    @JoinColumn(name = "subscription_id")
+    private SubscriptionPlanEntity subscriptionPlan;
+
+    @Column(name = "subscription_purchase_date")
+    private LocalDate subscriptionPurchaseDate;
+
+    @Column(name = "subscription_expiry_date")
+    private LocalDate subscriptionExpiryDate;
+
+    @Column(name = "subscription_duration_in_days")
+    private int subscriptionDurationInDays;
+
+    @Column(name = "published_add_count")
+    private int publishedAddCount;
+
+    @OneToMany(mappedBy = "serviceProvider", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<AdvertisementEntity> advertisements;
 }

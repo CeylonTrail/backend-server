@@ -177,7 +177,7 @@ public class PostServiceIMPL implements PostService {
         PostEntity post = new PostEntity();
         post.setUser(userRepo.findByUserId(authService.getAuthUserId()));
         post.setContent(postDTO.getContent());
-        if (postDTO.getTripId() != null)
+        if (!Objects.equals(postDTO.getTripId(), "0"))
             post.setTrip(this.tripService.initialTripAndUserCheck(Integer.parseInt(postDTO.getTripId())));
         if (Objects.equals(postDTO.getPrivacy(), String.valueOf(PostPrivacyEnum.FOLLOWERS)))
             post.setPrivacy(PostPrivacyEnum.FOLLOWERS);
@@ -238,9 +238,9 @@ public class PostServiceIMPL implements PostService {
     }
 
     @Override
-    public StandardResponse addComment(AddCommentDTO commentDTO) {
+    public StandardResponse addComment(Long postId, AddCommentDTO commentDTO) {
         CommentEntity comment = new CommentEntity();
-        comment.setPost(this.initialPostCheck(commentDTO.getPostId()));
+        comment.setPost(this.initialPostCheck(postId));
         comment.setUser(userRepo.findByUserId(authService.getAuthUserId()));
         comment.setContent(commentDTO.getContent());
         commentRepo.save(comment);

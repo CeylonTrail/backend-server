@@ -40,12 +40,21 @@ public class PlaceController {
     }
 
     @GetMapping(
-            path = {"/get-all-places"},
-            params ={"page"}
+            path = {"/get-all-places"}
     )
     public StandardResponse getPlaceByName(
-            @RequestParam(value = "page") int page
-    ){         return googlePlacesService.getAllPlaces(page,10);
+    ){         return googlePlacesService.getAllPlaces();
+    }
+
+
+
+    @GetMapping(path = "/emergency")
+    public StandardResponse emergencyPlaces(
+            @RequestParam(value = "location") String location
+
+    ){
+        return googlePlacesService.getEmergencyPlaces(location);
+
     }
 
 }

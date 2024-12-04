@@ -1,5 +1,6 @@
 package com.ceylontrail.backend_server.service.impl;
 
+import com.ceylontrail.backend_server.entity.AdvertisementEntity;
 import com.ceylontrail.backend_server.entity.ImageEntity;
 import com.ceylontrail.backend_server.entity.PostEntity;
 import com.ceylontrail.backend_server.exception.NotFoundException;
@@ -99,6 +100,22 @@ public class ImageServiceIMPL implements ImageService {
     }
 
     @Override
+    public List<ImageEntity> UploadAdImages(AdvertisementEntity ad, List<MultipartFile> files) {
+        return files.stream().map(file -> {
+            ImageEntity image = this.uploadImage(file);
+            image.setAdvertisement(ad);
+            return imageRepo.save(image);
+        }).collect(Collectors.toList());
+    }
+
+    @Override
+    public void deleteAdImages(List<ImageEntity> images) {
+        for (ImageEntity image : images) {
+            deleteImage(image);
+        }
+    }
+
+    @Override
     public Resource getImageResource(String filename){
         if (!imageRepo.existsByFilename(filename))
             throw new NotFoundException("Image does not exist");
@@ -111,6 +128,11 @@ public class ImageServiceIMPL implements ImageService {
         } catch (MalformedURLException e) {
             throw new BadRequestException("Failed to load image");
         }
+    }
+
+    @Override
+    public List<String> getImageUrlsByUserId(int userId) {
+        return imageRepo.findAllImageUrlsByUserId(userId);
     }
 
 }

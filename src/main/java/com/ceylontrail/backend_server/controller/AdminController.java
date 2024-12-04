@@ -1,5 +1,8 @@
 package com.ceylontrail.backend_server.controller;
 
+import com.ceylontrail.backend_server.dto.admin.UpdateVerificationDTO;
+import com.ceylontrail.backend_server.dto.subscription.AddSubscriptionDTO;
+import com.ceylontrail.backend_server.dto.subscription.EditSubscriptionDTO;
 import com.ceylontrail.backend_server.service.AdminService;
 import com.ceylontrail.backend_server.util.StandardResponse;
 import lombok.AllArgsConstructor;
@@ -13,45 +16,48 @@ public class AdminController {
 
     private final AdminService adminService;
 
+    @GetMapping("/dashboard")
+    public StandardResponse getDashboard() { return adminService.getDashboard(); }
+
     @GetMapping("/user/traveller")
-    public StandardResponse getTravellers(
-            @RequestParam(defaultValue = "") String key,
-            @RequestParam(defaultValue = "1") int pageNumber,
-            @RequestParam(defaultValue = "5") int pageSize) {
-        return adminService.getTravellers(key, pageNumber, pageSize);
-    }
+    public StandardResponse getTravellers(){ return adminService.getTravellers(); }
 
     @GetMapping("/user/sp")
-    public StandardResponse getSPs(
-            @RequestParam(defaultValue = "") String key,
-            @RequestParam(defaultValue = "1") int pageNumber,
-            @RequestParam(defaultValue = "5") int pageSize) {
-        return this.adminService.getSPs(key, pageNumber, pageSize);
-    }
-
-    @GetMapping("/user/traveller/{userId}")
-    public StandardResponse getTraveller(@PathVariable int userId) {
-        return this.adminService.getTraveller(userId);
-    }
+    public StandardResponse getSPs() { return this.adminService.getSPs(); }
 
     @DeleteMapping("/user/traveller/{userId}")
-    public StandardResponse deleteTraveller(@PathVariable int userId) {
-        return this.adminService.deleteTraveller(userId);
-    }
+    public StandardResponse deleteTraveller(@PathVariable int userId) { return this.adminService.deleteTraveller(userId); }
 
-    @GetMapping("/user/sp/{userId}")
-    public StandardResponse getSP(@PathVariable int userId) {
-        return this.adminService.getSP(userId);
-    }
+    @GetMapping("/user/sp/{spId}")
+    public StandardResponse getSP(@PathVariable Long spId) { return this.adminService.getSP(spId); }
 
     @DeleteMapping("/user/sp/{userId}")
-    public StandardResponse deleteSP(@PathVariable int userId) {
-        return this.adminService.deleteSP(userId);
+    public StandardResponse deleteSP(@PathVariable int userId) { return this.adminService.deleteSP(userId); }
+
+    @GetMapping("/user/sp/verification")
+    public StandardResponse getAllVerificationSPs() { return this.adminService.getAllVerificationSPs(); }
+
+    @GetMapping("/user/sp/verification/{spId}")
+    public StandardResponse getVerificationSP(@PathVariable Long spId) { return this.adminService.getVerificationSP(spId); }
+
+    @PutMapping("/user/sp/verification/{spId}")
+    public StandardResponse updateVerificationSP(@PathVariable Long spId, @RequestBody UpdateVerificationDTO updateVerificationDTO) {
+        return this.adminService.updateVerificationSP(spId, updateVerificationDTO);
     }
 
     @DeleteMapping("/post/{postId}")
-    public StandardResponse deletePost(@PathVariable Long postId) {
-        return this.adminService.deletePost(postId);
-    }
+    public StandardResponse deletePost(@PathVariable Long postId) { return this.adminService.deletePost(postId); }
+
+    @PostMapping("/subscription")
+    public StandardResponse addSubscription(@RequestBody AddSubscriptionDTO subscriptionDTO) { return this.adminService.addSubscription(subscriptionDTO); }
+
+    @GetMapping("/subscription/{subscriptionId}")
+    public StandardResponse getSubscription(@PathVariable Long subscriptionId) { return this.adminService.getSubscription(subscriptionId); }
+
+    @PutMapping("/subscription/{subscriptionId}")
+    public StandardResponse editSubscription(@PathVariable Long subscriptionId, @RequestBody EditSubscriptionDTO subscriptionDTO) { return this.adminService.editSubscription(subscriptionId, subscriptionDTO); }
+
+    @DeleteMapping("/subscription/{subscriptionId}")
+    public StandardResponse deleteSubscription(@PathVariable Long subscriptionId) { return this.adminService.deleteSubscription(subscriptionId); }
 
 }

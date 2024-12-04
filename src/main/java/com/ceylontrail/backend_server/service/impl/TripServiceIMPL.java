@@ -94,6 +94,7 @@ public class TripServiceIMPL implements TripService {
 
 
             tripRepo.save(trip);
+            requestTripSaveDTO.setTripId(trip.getTripId());
 
             if(tripRepo.existsById(trip.getTripId())){
                 List<EventEntity> eventList= mapper.DtoListToEntityList(requestTripSaveDTO.getEventSet());
@@ -135,6 +136,7 @@ public class TripServiceIMPL implements TripService {
         int userId = authService.getAuthUserId();
         List<TripEntity> allTrips = tripRepo.findAllByUserId(userId);
 
+
         if(!allTrips.isEmpty()){
             List<ResponseGetAllTripDTO> getAllTripDTOS = new ArrayList<>();
             for (TripEntity tripEntity : allTrips) {
@@ -154,7 +156,7 @@ public class TripServiceIMPL implements TripService {
             return new StandardResponse(200, "success", getAllTripDTOS);
 
         }else{
-            return new StandardResponse(200, "success", "No Planned Trips");
+            return new StandardResponse(404, "You dont have trips", null);
         }
 
     }

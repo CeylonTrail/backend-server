@@ -1,5 +1,5 @@
 package com.ceylontrail.backend_server.dto.paginated;
-import com.ceylontrail.backend_server.dto.PlaceDTO;
+import com.ceylontrail.backend_server.dto.places.PlaceDTO;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;

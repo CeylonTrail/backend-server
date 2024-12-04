@@ -31,6 +31,9 @@ public class ReportEntity {
     @Column(name = "reason", nullable = false, columnDefinition = "TEXT")
     private String reason;
 
+    @Column(name = "status")
+    private String status = "PENDING";
+
     @CreatedDate
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;

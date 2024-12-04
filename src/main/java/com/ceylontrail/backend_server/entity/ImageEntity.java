@@ -27,4 +27,8 @@ public class ImageEntity {
     @JoinColumn(name = "post_id")
     private PostEntity post;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "advertisement_id")
+    private AdvertisementEntity advertisement;
+
 }

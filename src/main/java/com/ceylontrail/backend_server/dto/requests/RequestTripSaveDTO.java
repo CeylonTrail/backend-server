@@ -11,6 +11,7 @@ import java.util.List;
 @Data
 
 public class RequestTripSaveDTO {
+    private int tripId;
     private String destination;
     private int dayCount;
     private String description;

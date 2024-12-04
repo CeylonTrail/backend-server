@@ -94,6 +94,7 @@ public class TripServiceIMPL implements TripService {
 
 
             tripRepo.save(trip);
+            requestTripSaveDTO.setTripId(trip.getTripId());
 
             if(tripRepo.existsById(trip.getTripId())){
                 List<EventEntity> eventList= mapper.DtoListToEntityList(requestTripSaveDTO.getEventSet());

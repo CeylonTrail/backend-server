@@ -2,6 +2,7 @@ package com.ceylontrail.backend_server.controller;
 
 import com.ceylontrail.backend_server.dto.advertisement.AdvertisementDTO;
 import com.ceylontrail.backend_server.dto.advertisement.EditAdDTO;
+import com.ceylontrail.backend_server.dto.sp.SPEditDTO;
 import com.ceylontrail.backend_server.dto.sp.SPSetupDTO;
 import com.ceylontrail.backend_server.dto.sp.SubscriptionPurchaseDTO;
 import com.ceylontrail.backend_server.service.SPService;
@@ -22,10 +23,19 @@ public class SPController {
         return this.spService.setup(spSetupDTO);
     }
 
+    @PutMapping("/{spId}")
+    public StandardResponse edit(@PathVariable Long spId, @ModelAttribute SPEditDTO spEditDTO){
+        return this.spService.edit(spId, spEditDTO);
+    }
+
+    @GetMapping("/profile")
+    public StandardResponse getProfile(){ return spService.getProfile(); }
+
     @PostMapping("/purchase/subscription")
     public StandardResponse purchaseSubscription(@RequestBody SubscriptionPurchaseDTO purchaseDTO) {
         return this.spService.purchaseSubscription(purchaseDTO);
     }
+
     @PostMapping("/advertisement")
     public StandardResponse createAdvertisement(@ModelAttribute AdvertisementDTO advertisementDTO){
         return this.spService.createAdvertisement(advertisementDTO);

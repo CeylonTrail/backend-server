@@ -5,6 +5,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
+
 @Entity
 @Table(name = "subscription_plan")
 @Data
@@ -28,5 +30,9 @@ public class SubscriptionPlanEntity {
 
     @Column(name = "ad_count")
     private int adCount;
+
+    @ElementCollection
+    @CollectionTable(name = "subscription_feature", joinColumns = @JoinColumn(name = "subscription_id"))
+    private List<String> feature;
 
 }

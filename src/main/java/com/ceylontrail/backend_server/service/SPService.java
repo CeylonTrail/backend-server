@@ -33,4 +33,6 @@ public interface SPService {
     StandardResponse getProfile();
 
     StandardResponse edit(Long spId, SPEditDTO spEditDTO);
+
+    StandardResponse getSubscriptions();
 }
